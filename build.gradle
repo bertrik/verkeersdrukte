@@ -1,0 +1,42 @@
+plugins {
+    alias libs.plugins.versions
+    alias libs.plugins.dependencycheck
+}
+
+def isNonStable = { String version ->
+    def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { it -> version.toUpperCase().contains(it) }
+    def regex = /^[0-9,.v-]+(-r)?$/
+    return !stableKeyword && !(version ==~ regex)
+}
+
+dependencyCheck {
+    scanConfigurations = ['runtimeClasspath']
+}
+
+subprojects {
+    apply plugin: "java"
+    apply plugin: "eclipse"
+    apply plugin: 'com.github.ben-manes.versions'
+    
+    java {
+        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_11
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    // Reject all non stable versions in dependency check
+    tasks.named("dependencyUpdates").configure {
+        rejectVersionIf {
+            isNonStable(it.candidate.version)
+        }
+    }
+
+    // Standard libraries added to all projects
+    dependencies {
+        testImplementation libs.junit
+    }
+}
+

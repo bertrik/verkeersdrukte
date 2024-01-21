@@ -1,0 +1,16 @@
+apply plugin: "application"
+
+application {
+    mainClass = 'nl.bertriksikken.verkeersdrukte.app.VerkeersDrukteApp'
+}
+
+dependencies {
+    implementation libs.bundles.retrofit
+    implementation libs.bundles.jackson
+    implementation libs.bundles.dropwizard
+    implementation libs.jdbf
+
+    // https://mvnrepository.com/artifact/org.glassfish.jersey.media/jersey-media-sse
+    implementation libs.jersey.media.sse
+}
+
