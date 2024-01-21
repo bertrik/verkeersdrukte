@@ -1,0 +1,26 @@
+---
+ndw:
+  host: "https://opendata.ndw.nu/"
+  timeout: 30
+logging: !<default>
+  level: "INFO"
+  loggers: {}
+  appenders:
+    - type: file
+      logFormat: "%d{yyyy-MM-dd} | %d{HH:mm:ss.SSS} | %-15.15thread | %5p | %-25.25logger{25} | %m%n"
+      currentLogFilename: verkeersdrukte.log
+      archivedLogFilenamePattern: verkeersdrukte.log.%d
+      archivedFileCount: 10
+    - type: console
+      logFormat: "%d{yyyy-MM-dd} | %d{HH:mm:ss.SSS} | %-15.15thread | %5p | %-25.25logger{25} | %m%n"
+      target: "STDOUT"
+server: !<default>
+  applicationConnectors:
+    - type: http
+      port: 9002
+  requestLog:
+    appenders:
+      - type: file
+        currentLogFilename: requests.log
+        archivedLogFilenamePattern: requests.log.%d
+        archivedFileCount: 10
