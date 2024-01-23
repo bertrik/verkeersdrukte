@@ -32,25 +32,22 @@ public final class D2LogicalModel {
         this.payloadPublication = payloadPublication;
     }
 
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
     @JsonSubTypes({@Type(value = MeasuredDataPublication.class, name = "MeasuredDataPublication")})
     public static abstract class PayloadPublication {
-        String type;
+        @JacksonXmlProperty(localName = "type", isAttribute = true)
+        public String type;
 
         @JacksonXmlProperty(localName = "publicationTime")
-        String publicationTime;
+        public String publicationTime;
 
-        // jackson creator
-        PayloadPublication() {
-        }
-
-        PayloadPublication(String type, String publicationTime) {
+        PayloadPublication(String type) {
             this.type = type;
-            this.publicationTime = publicationTime;
         }
 
         PayloadPublication(String type, Instant publicationDateTime) {
-            this(type, publicationDateTime.truncatedTo(ChronoUnit.SECONDS).toString());
+            this(type);
+            publicationTime = publicationDateTime.truncatedTo(ChronoUnit.SECONDS).toString();
         }
     }
 
@@ -61,7 +58,7 @@ public final class D2LogicalModel {
         public List<SiteMeasurements> siteMeasurementsList = new ArrayList<>();
 
         public MeasuredDataPublication() {
-            // jackson constructor
+            super("MeasuredDataPublication");
         }
 
         public MeasuredDataPublication(Instant publicationTime) {
