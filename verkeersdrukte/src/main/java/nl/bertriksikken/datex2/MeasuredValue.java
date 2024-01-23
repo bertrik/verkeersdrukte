@@ -82,6 +82,7 @@ public final class MeasuredValue {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class TrafficFlow extends BasicData {
         @JacksonXmlProperty(localName = "vehicleFlow")
         VehicleFlow vehicleFlow;
@@ -125,6 +126,7 @@ public final class MeasuredValue {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class TrafficSpeed extends BasicData {
         @JacksonXmlProperty(localName = "averageVehicleSpeed")
         AverageVehicleSpeed averageVehicleSpeed;
