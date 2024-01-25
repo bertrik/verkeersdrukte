@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -29,12 +28,12 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
 
     private static final Logger LOG = LoggerFactory.getLogger(TrafficHandler.class);
 
-    private final Map<String, Subscription> subscriptions = new HashMap<>();
+    private final Map<String, Subscription> subscriptions = new ConcurrentHashMap<>();
 
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private final NdwClient ndwClient;
     private final ObjectMapper mapper;
-    private MeasurementCache measurementCache = new MeasurementCache("");
+    private MeasurementCache measurementCache = new MeasurementCache(Instant.now());
 
     public TrafficHandler(NdwConfig config) {
         this.ndwClient = NdwClient.create(config);
@@ -83,16 +82,15 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     }
 
     private MeasurementCache decode(ByteArrayInputStream inputStream) throws IOException {
-        LOG.info("Parsing");
         try (GZIPInputStream gzis = new GZIPInputStream(inputStream)) {
             JsonNode node = mapper.readValue(gzis, JsonNode.class);
             JsonNode d2LogicalModel = node.at("/Body/d2LogicalModel");
             D2LogicalModel model = mapper.treeToValue(d2LogicalModel, D2LogicalModel.class);
             D2LogicalModel.PayloadPublication payloadPublication = model.payloadPublication;
             LOG.info("Payload publication: type {}, time {}", payloadPublication.type, payloadPublication.publicationTime);
-
             D2LogicalModel.MeasuredDataPublication measuredDataPublication = (D2LogicalModel.MeasuredDataPublication) payloadPublication;
-            MeasurementCache snapshot = new MeasurementCache(measuredDataPublication.publicationTime);
+            Instant publicationTime = Instant.parse(measuredDataPublication.publicationTime);
+            MeasurementCache snapshot = new MeasurementCache(publicationTime);
             for (SiteMeasurements measurements : measuredDataPublication.siteMeasurementsList) {
                 AggregateMeasurement aggregateMeasurement = aggregateValues(measurements);
                 snapshot.put(measurements.reference.id, aggregateMeasurement);
@@ -103,7 +101,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
 
 
     private AggregateMeasurement aggregateValues(SiteMeasurements measurements) {
-        String dateTime = measurements.measurementTimeDefault;
+        Instant dateTime = Instant.parse(measurements.measurementTimeDefault);
         // group by type
         List<MeasuredValue.TrafficFlow> flows = new ArrayList<>();
         List<MeasuredValue.TrafficSpeed> speeds = new ArrayList<>();
@@ -146,12 +144,14 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
 
     @Override
     public void subscribe(String clientId, INotifyData callback) {
+        LOG.info("Subscribe: {}", clientId);
         Subscription subscription = new Subscription(clientId, callback);
         subscriptions.put(clientId, subscription);
     }
 
     @Override
     public void unsubscribe(String clientId) {
+        LOG.info("Unsubscribe: {}", clientId);
         subscriptions.remove(clientId);
     }
 
