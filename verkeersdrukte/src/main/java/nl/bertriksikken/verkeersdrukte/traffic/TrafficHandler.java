@@ -18,6 +18,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private final NdwClient ndwClient;
     private final ObjectMapper mapper;
+    private MeasurementCache measurementCache = new MeasurementCache("");
 
     public TrafficHandler(NdwConfig config) {
         this.ndwClient = NdwClient.create(config);
@@ -63,7 +65,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
             Duration age = Duration.between(response.getLastModified(), Instant.now());
             next = response.getLastModified().plusSeconds(65);
             LOG.info("Got data, {} bytes, age {}", response.getContents().length, age);
-            decode(new ByteArrayInputStream(response.getContents()));
+            measurementCache = decode(new ByteArrayInputStream(response.getContents()));
         } catch (IOException e) {
             LOG.warn("Download failed", e);
             next = Instant.now().plusSeconds(60);
@@ -80,7 +82,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         notifyClients();
     }
 
-    private void decode(ByteArrayInputStream inputStream) throws IOException {
+    private MeasurementCache decode(ByteArrayInputStream inputStream) throws IOException {
         LOG.info("Parsing");
         try (GZIPInputStream gzis = new GZIPInputStream(inputStream)) {
             JsonNode node = mapper.readValue(gzis, JsonNode.class);
@@ -90,16 +92,56 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
             LOG.info("Payload publication: type {}, time {}", payloadPublication.type, payloadPublication.publicationTime);
 
             D2LogicalModel.MeasuredDataPublication measuredDataPublication = (D2LogicalModel.MeasuredDataPublication) payloadPublication;
-            int numMeasurements = 0;
-            int numSites = 0;
+            MeasurementCache snapshot = new MeasurementCache(measuredDataPublication.publicationTime);
             for (SiteMeasurements measurements : measuredDataPublication.siteMeasurementsList) {
-                for (MeasuredValue value : measurements.measuredValueList) {
-                    numMeasurements++;
-                }
-                numSites++;
+                AggregateMeasurement aggregateMeasurement = aggregateValues(measurements);
+                snapshot.put(measurements.reference.id, aggregateMeasurement);
             }
-            LOG.info("Parsed {} measurements from {} sites", numMeasurements, numSites);
+            return snapshot;
         }
+    }
+
+
+    private AggregateMeasurement aggregateValues(SiteMeasurements measurements) {
+        String dateTime = measurements.measurementTimeDefault;
+        // group by type
+        List<MeasuredValue.TrafficFlow> flows = new ArrayList<>();
+        List<MeasuredValue.TrafficSpeed> speeds = new ArrayList<>();
+        for (MeasuredValue value : measurements.measuredValueList) {
+            switch (value.measuredValue.basicData.type) {
+                case "TrafficFlow":
+                    flows.add((MeasuredValue.TrafficFlow) value.measuredValue.basicData);
+                    break;
+                case "TrafficSpeed":
+                    speeds.add((MeasuredValue.TrafficSpeed) value.measuredValue.basicData);
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (flows.isEmpty() || (flows.size() != speeds.size())) {
+            // cannot determine speed
+            return new AggregateMeasurement(dateTime, Double.NaN, Double.NaN);
+        }
+
+        // aggregate flow as simple sum, speed as flow-weighted sum
+        double sumFlowSpeed = 0.0;
+        double sumFlow = 0.0;
+        for (int i = 0; i < flows.size(); i++) {
+            MeasuredValue.TrafficFlow flow = flows.get(i);
+            MeasuredValue.TrafficSpeed speed = speeds.get(i);
+            double flowValue = flow.vehicleFlow.dataError ? Double.NaN : flow.vehicleFlow.vehicleFlowRate;
+            double speedValue = speed.averageVehicleSpeed.dataError ? Double.NaN : speed.averageVehicleSpeed.speed;
+            sumFlowSpeed += flow.vehicleFlow.vehicleFlowRate * speed.averageVehicleSpeed.speed;
+            sumFlow += flow.vehicleFlow.vehicleFlowRate;
+        }
+        double aggregateSpeed = sumFlowSpeed / sumFlow;
+        return new AggregateMeasurement(dateTime, sumFlow, aggregateSpeed);
+    }
+
+    @Override
+    public AggregateMeasurement getDynamicData(String location) {
+        return measurementCache.get(location);
     }
 
     @Override

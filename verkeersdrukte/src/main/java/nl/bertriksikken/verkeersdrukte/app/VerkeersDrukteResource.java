@@ -9,9 +9,13 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.sse.OutboundSseEvent;
 import jakarta.ws.rs.sse.Sse;
 import jakarta.ws.rs.sse.SseEventSink;
+import nl.bertriksikken.verkeersdrukte.traffic.AggregateMeasurement;
 import nl.bertriksikken.verkeersdrukte.traffic.ITrafficHandler;
+import nl.bertriksikken.verkeersdrukte.traffic.MeasurementResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Optional;
 
 @Path("/traffic")
 @Produces(MediaType.APPLICATION_JSON)
@@ -42,10 +46,13 @@ public final class VerkeersDrukteResource {
 
     @GET
     @Path("/dynamic/{location}")
-    public String getDynamic(@PathParam("location") String location) {
+    public Optional<MeasurementResult> getDynamic(@PathParam("location") String location) {
         // return snapshot of most recent measurement for location
-        LOG.info("getDynamic() for location {}", location);
-        return location;
+        AggregateMeasurement aggregateMeasurement = handler.getDynamicData(location);
+        if (aggregateMeasurement == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new MeasurementResult(location, aggregateMeasurement));
     }
 
     @GET

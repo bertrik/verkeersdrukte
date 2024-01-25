@@ -36,18 +36,13 @@ public final class D2LogicalModel {
     @JsonSubTypes({@Type(value = MeasuredDataPublication.class, name = "MeasuredDataPublication")})
     public static abstract class PayloadPublication {
         @JacksonXmlProperty(localName = "type", isAttribute = true)
-        public String type;
+        public final String type;
 
         @JacksonXmlProperty(localName = "publicationTime")
         public String publicationTime;
 
         PayloadPublication(String type) {
             this.type = type;
-        }
-
-        PayloadPublication(String type, Instant publicationDateTime) {
-            this(type);
-            publicationTime = publicationDateTime.truncatedTo(ChronoUnit.SECONDS).toString();
         }
     }
 
@@ -58,11 +53,13 @@ public final class D2LogicalModel {
         public List<SiteMeasurements> siteMeasurementsList = new ArrayList<>();
 
         public MeasuredDataPublication() {
+            // jackson no-arg constructor
             super("MeasuredDataPublication");
         }
 
         public MeasuredDataPublication(Instant publicationTime) {
-            super("MeasuredDataPublication", publicationTime);
+            super("MeasuredDataPublication");
+            this.publicationTime = publicationTime.truncatedTo(ChronoUnit.SECONDS).toString();
         }
 
         public void addSiteMeasurements(SiteMeasurements measurements) {

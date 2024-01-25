@@ -19,10 +19,10 @@ public final class MeasuredValue {
     int index;
 
     @JacksonXmlProperty(localName = "type", isAttribute = true)
-    String type = null;
+    String type = ""; // sometimes "_SiteMeasurementsIndexMeasuredValue"
 
     @JacksonXmlProperty(localName = "measuredValue")
-    MeasuredValueWrapper measuredValue;
+    public MeasuredValueWrapper measuredValue;
 
     MeasuredValue() {
         // jackson constructor
@@ -35,13 +35,13 @@ public final class MeasuredValue {
 
     @Override
     public String toString() {
-        return measuredValue.toString();
+        return String.format(Locale.ROOT, "[%d]=%s", index, measuredValue);
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class MeasuredValueWrapper {
         @JacksonXmlProperty(localName = "basicData")
-        BasicData basicData;
+        public BasicData basicData;
 
         MeasuredValueWrapper() {
             // jackson constructor
@@ -58,13 +58,14 @@ public final class MeasuredValue {
         }
     }
 
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
     @JsonSubTypes({@Type(value = TrafficFlow.class, name = "TrafficFlow"), @Type(value = TrafficSpeed.class, name = "TrafficSpeed")})
     public static abstract class BasicData {
-        String type;
+        @JacksonXmlProperty(localName = "type", isAttribute = true)
+        public final String type;
 
         @JsonCreator
-        public BasicData(String type) {
+        BasicData(String type) {
             this.type = type;
         }
     }
@@ -73,7 +74,7 @@ public final class MeasuredValue {
     @JsonInclude(Include.NON_NULL)
     public static abstract class BasicDataValue {
         @JacksonXmlProperty(localName = "dataError")
-        Boolean dataError;
+        public boolean dataError = false;
         @JacksonXmlProperty(localName = "numberOfInputValuesUsed", isAttribute = true)
         int numberOfInputValuesUsed;
 
@@ -85,7 +86,7 @@ public final class MeasuredValue {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class TrafficFlow extends BasicData {
         @JacksonXmlProperty(localName = "vehicleFlow")
-        VehicleFlow vehicleFlow;
+        public VehicleFlow vehicleFlow;
 
         TrafficFlow() {
             // jackson constructor
@@ -107,7 +108,7 @@ public final class MeasuredValue {
          */
         public static final class VehicleFlow extends BasicDataValue {
             @JacksonXmlProperty(localName = "vehicleFlowRate")
-            int vehicleFlowRate;
+            public int vehicleFlowRate;
 
             VehicleFlow() {
                 // jackson constructor
@@ -129,7 +130,7 @@ public final class MeasuredValue {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class TrafficSpeed extends BasicData {
         @JacksonXmlProperty(localName = "averageVehicleSpeed")
-        AverageVehicleSpeed averageVehicleSpeed;
+        public AverageVehicleSpeed averageVehicleSpeed;
 
         TrafficSpeed() {
             // jackson constructor
@@ -148,7 +149,7 @@ public final class MeasuredValue {
 
         public static final class AverageVehicleSpeed extends BasicDataValue {
             @JacksonXmlProperty(localName = "speed")
-            Double speed;
+            public final Double speed;
 
             AverageVehicleSpeed() {
                 // jackson constructor

@@ -13,10 +13,10 @@ import java.util.List;
 public final class SiteMeasurements {
 
     @JacksonXmlProperty(localName = "measurementSiteReference")
-    Reference reference;
+    public Reference reference;
 
     @JacksonXmlProperty(localName = "measurementTimeDefault")
-    String measurementTimeDefault = "";
+    public String measurementTimeDefault = "";
 
     @JacksonXmlElementWrapper(useWrapping = false)
     @JacksonXmlProperty(localName = "measuredValue")
@@ -43,7 +43,7 @@ public final class SiteMeasurements {
 
     public static final class Reference {
         @JacksonXmlProperty(localName = "id", isAttribute = true)
-        String id = "";
+        public String id = "";
 
         @JacksonXmlProperty(localName = "version", isAttribute = true)
         String version = "";
@@ -59,6 +59,11 @@ public final class SiteMeasurements {
         Reference(String id, String version) {
             this.id = id;
             this.version = version;
+        }
+
+        @Override
+        public String toString() {
+            return id;
         }
     }
 }
