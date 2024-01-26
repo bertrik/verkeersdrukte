@@ -2,6 +2,8 @@
 ndw:
   host: "https://opendata.ndw.nu/"
   timeout: 30
+traffic:
+  timeZone: "Europe/Amsterdam"
 logging: !<default>
   level: "INFO"
   loggers: {}

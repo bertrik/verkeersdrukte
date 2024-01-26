@@ -16,6 +16,7 @@ import jakarta.ws.rs.sse.Sse;
 import jakarta.ws.rs.sse.SseEventSink;
 import nl.bertriksikken.verkeersdrukte.traffic.AggregateMeasurement;
 import nl.bertriksikken.verkeersdrukte.traffic.ITrafficHandler;
+import nl.bertriksikken.verkeersdrukte.traffic.TrafficConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,10 +44,10 @@ public final class VerkeersDrukteResource {
 
     private final ZoneId zoneId;
 
-    VerkeersDrukteResource(ITrafficHandler handler) {
+    VerkeersDrukteResource(ITrafficHandler handler, TrafficConfig config) {
         this.handler = handler;
         mapper.findAndRegisterModules();
-        zoneId = ZoneId.of("Europe/Amsterdam");
+        zoneId = config.getTimeZone();
     }
 
     @GET
