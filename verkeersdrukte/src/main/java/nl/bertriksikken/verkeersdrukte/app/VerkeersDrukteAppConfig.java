@@ -10,9 +10,9 @@ import nl.bertriksikken.verkeersdrukte.traffic.TrafficConfig;
 final class VerkeersDrukteAppConfig extends Configuration {
 
     @JsonProperty("ndw")
-    private final NdwConfig ndwConfig = new NdwConfig();
+    private NdwConfig ndwConfig = new NdwConfig();
     @JsonProperty("traffic")
-    private TrafficConfig trafficConfig;
+    private TrafficConfig trafficConfig = new TrafficConfig();
 
     public NdwConfig getNdwConfig() {
         return ndwConfig;
