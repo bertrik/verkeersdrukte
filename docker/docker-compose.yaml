@@ -5,4 +5,4 @@ services:
     build: ..
     restart: always
     volumes:
-      - "./configuration.yaml:/opt/energymix-server/configuration.yaml:ro"
+      - "./configuration.yaml:/opt/verkeersdrukte/configuration.yaml:ro"
