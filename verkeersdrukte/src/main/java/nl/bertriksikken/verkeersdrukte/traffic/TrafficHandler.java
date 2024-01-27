@@ -63,7 +63,9 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     public void stop() {
         try {
             executor.shutdown();
-            executor.awaitTermination(5, TimeUnit.SECONDS);
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                LOG.warn("Executor did not terminate");
+            }
         } catch (InterruptedException e) {
             LOG.warn("Error stopping executor", e);
         }
