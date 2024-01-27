@@ -1,17 +1,22 @@
 package nl.bertriksikken.verkeersdrukte.traffic;
 
-public interface ITrafficHandler {
+import nl.bertriksikken.geojson.FeatureCollection;
 
+public interface ITrafficHandler {
 
     boolean isHealthy();
 
     AggregateMeasurement getDynamicData(String location);
 
-     void subscribe(String clientId, INotifyData callback);
+    FeatureCollection getStaticData();
 
-     void unsubscribe(String clientId);
+    FeatureCollection.Feature getStaticData(String location);
 
-    public interface INotifyData {
+    void subscribe(String clientId, INotifyData callback);
+
+    void unsubscribe(String clientId);
+
+    interface INotifyData {
         void notifyUpdate();
     }
 }

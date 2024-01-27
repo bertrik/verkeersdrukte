@@ -8,6 +8,10 @@ import io.dropwizard.lifecycle.Managed;
 import nl.bertriksikken.datex2.D2LogicalModel;
 import nl.bertriksikken.datex2.MeasuredValue;
 import nl.bertriksikken.datex2.SiteMeasurements;
+import nl.bertriksikken.geojson.FeatureCollection;
+import nl.bertriksikken.shapefile.EShapeType;
+import nl.bertriksikken.shapefile.ShapeFile;
+import nl.bertriksikken.shapefile.ShapeRecord;
 import nl.bertriksikken.verkeersdrukte.ndw.FileResponse;
 import nl.bertriksikken.verkeersdrukte.ndw.NdwClient;
 import nl.bertriksikken.verkeersdrukte.ndw.NdwConfig;
@@ -16,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -34,6 +39,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private final NdwClient ndwClient;
     private final ObjectMapper mapper;
     private MeasurementCache measurementCache = new MeasurementCache(Instant.now());
+    private FeatureCollection shapeFile;
 
     public TrafficHandler(NdwConfig config) {
         this.ndwClient = NdwClient.create(config);
@@ -41,8 +47,15 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     }
 
     @Override
-    public void start() {
+    public void start() throws IOException {
+        // read the shape file
+        LOG.info("Reading shape file ...");
+        InputStream shpStream = getClass().getClassLoader().getResourceAsStream("shapefile/Telpunten_WGS84.shp");
+        InputStream dbfStream = getClass().getClassLoader().getResourceAsStream("shapefile/Telpunten_WGS84.dbf");
+        shapeFile = readShapeFile(shpStream, dbfStream);
+
         // schedule regular fetches, starting immediately
+        LOG.info("Schedule download ...");
         executor.schedule(this::downloadTrafficSpeed, 0, TimeUnit.SECONDS);
     }
 
@@ -143,6 +156,23 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     }
 
     @Override
+    public FeatureCollection getStaticData() {
+        return shapeFile;
+    }
+
+    @Override
+    public FeatureCollection.Feature getStaticData(String location) {
+        for (FeatureCollection.Feature feature : shapeFile.getFeatures()) {
+            String dlgLoc = feature.getProperties().get("dgl_loc").toString();
+            if (location.equals(dlgLoc)) {
+                return feature;
+            }
+        }
+        // not found
+        return null;
+    }
+
+    @Override
     public void subscribe(String clientId, INotifyData callback) {
         LOG.info("Subscribe: {}", clientId);
         Subscription subscription = new Subscription(clientId, callback);
@@ -169,6 +199,21 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private void notifyClients() {
         List<Subscription> copy = List.copyOf(subscriptions.values());
         copy.forEach(subscription -> subscription.callback.notifyUpdate());
+    }
+
+    private FeatureCollection readShapeFile(InputStream shpStream, InputStream dbfStream) throws IOException {
+        ShapeFile shapeFile = ShapeFile.read(shpStream, dbfStream);
+        FeatureCollection collection = new FeatureCollection();
+        for (ShapeRecord record : shapeFile.getRecords()) {
+            if (record.getType() == EShapeType.Point) {
+                ShapeRecord.Point point = (ShapeRecord.Point) record;
+                FeatureCollection.GeoJsonGeometry geometry = new FeatureCollection.PointGeometry(point.y, point.x);
+                FeatureCollection.Feature feature = new FeatureCollection.Feature(geometry);
+                record.getProperties().forEach(feature::addProperty);
+                collection.add(feature);
+            }
+        }
+        return collection;
     }
 
     private static final class Subscription {

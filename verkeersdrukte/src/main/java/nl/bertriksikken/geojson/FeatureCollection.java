@@ -1,13 +1,13 @@
 package nl.bertriksikken.geojson;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 public final class FeatureCollection extends GeoJsonObject {
 
@@ -20,6 +20,10 @@ public final class FeatureCollection extends GeoJsonObject {
 
     public void add(Feature feature) {
         features.add(feature);
+    }
+
+    public List<Feature> getFeatures() {
+        return List.copyOf(features);
     }
 
     public static final class Feature extends GeoJsonObject {
@@ -36,6 +40,10 @@ public final class FeatureCollection extends GeoJsonObject {
 
         public void addProperty(String name, Object value) {
             properties.put(name, value);
+        }
+
+        public Map<String, Object> getProperties() {
+            return Map.copyOf(properties);
         }
     }
 
@@ -58,7 +66,7 @@ public final class FeatureCollection extends GeoJsonObject {
 
         public PointGeometry(double latitude, double longitude) {
             super(EGeometry.POINT);
-            coordinates = new double[] { longitude, latitude };
+            coordinates = new double[]{longitude, latitude};
         }
 
         public double getLatitude() {

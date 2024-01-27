@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import nl.bertriksikken.geojson.FeatureCollection;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,12 +11,10 @@ import java.io.InputStream;
 
 public final class ShapeFileReaderTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ShapeFileReaderTest.class);
-
     @Test
     public void testWriteGeoJson() throws IOException {
-        InputStream shpStream = getClass().getClassLoader().getResourceAsStream("Telpunten_WGS84.shp");
-        InputStream dbfStream = getClass().getClassLoader().getResourceAsStream("Telpunten_WGS84.dbf");
+        InputStream shpStream = getClass().getClassLoader().getResourceAsStream("shapefile/Telpunten_WGS84.shp");
+        InputStream dbfStream = getClass().getClassLoader().getResourceAsStream("shapefile/Telpunten_WGS84.dbf");
         ShapeFile shapeFile = ShapeFile.read(shpStream, dbfStream);
 
         FeatureCollection collection = new FeatureCollection();

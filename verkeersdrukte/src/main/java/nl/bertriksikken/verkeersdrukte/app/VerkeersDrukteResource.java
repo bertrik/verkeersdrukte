@@ -14,6 +14,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.sse.OutboundSseEvent;
 import jakarta.ws.rs.sse.Sse;
 import jakarta.ws.rs.sse.SseEventSink;
+import nl.bertriksikken.geojson.FeatureCollection;
 import nl.bertriksikken.verkeersdrukte.traffic.AggregateMeasurement;
 import nl.bertriksikken.verkeersdrukte.traffic.ITrafficHandler;
 import nl.bertriksikken.verkeersdrukte.traffic.TrafficConfig;
@@ -52,18 +53,14 @@ public final class VerkeersDrukteResource {
 
     @GET
     @Path("/static")
-    public String getStatic() {
-        // return the entire shape file, FeatureCollection
-        LOG.info("getStatic()");
-        return "static";
+    public FeatureCollection getStatic() {
+        return handler.getStaticData();
     }
 
     @GET
     @Path("/static/{location}")
-    public String getStatic(@PathParam("location") String location) {
-        // return part of the shape file, a single Feature
-        LOG.info("getStatic() for location {}", location);
-        return location;
+    public Optional<FeatureCollection.Feature> getStatic(@PathParam("location") String location) {
+        return Optional.ofNullable(handler.getStaticData(location));
     }
 
     @GET
