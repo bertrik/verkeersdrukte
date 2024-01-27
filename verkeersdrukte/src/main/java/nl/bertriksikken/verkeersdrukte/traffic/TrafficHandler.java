@@ -36,14 +36,14 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private final Map<String, INotifyData> subscriptions = new ConcurrentHashMap<>();
 
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    private final ObjectMapper xmlMapper = new XmlMapper();
     private final NdwClient ndwClient;
-    private final ObjectMapper mapper;
     private MeasurementCache measurementCache = new MeasurementCache(Instant.now());
     private FeatureCollection shapeFile;
 
     public TrafficHandler(NdwConfig config) {
         this.ndwClient = NdwClient.create(config);
-        this.mapper = new XmlMapper();
+        xmlMapper.findAndRegisterModules();
     }
 
     @Override
@@ -98,9 +98,9 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
 
     private MeasurementCache decode(ByteArrayInputStream inputStream) throws IOException {
         try (GZIPInputStream gzis = new GZIPInputStream(inputStream)) {
-            JsonNode node = mapper.readValue(gzis, JsonNode.class);
+            JsonNode node = xmlMapper.readValue(gzis, JsonNode.class);
             JsonNode d2LogicalModel = node.at("/Body/d2LogicalModel");
-            D2LogicalModel model = mapper.treeToValue(d2LogicalModel, D2LogicalModel.class);
+            D2LogicalModel model = xmlMapper.treeToValue(d2LogicalModel, D2LogicalModel.class);
             D2LogicalModel.PayloadPublication payloadPublication = model.payloadPublication;
             LOG.info("Payload publication: type {}, time {}", payloadPublication.type, payloadPublication.publicationTime);
             D2LogicalModel.MeasuredDataPublication measuredDataPublication = (D2LogicalModel.MeasuredDataPublication) payloadPublication;
