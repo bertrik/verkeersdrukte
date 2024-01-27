@@ -125,7 +125,7 @@ public final class VerkeersDrukteResource {
         private final String dateTime;
 
         @JsonProperty("flow")
-        private final BigDecimal flow;
+        private final Long flow;
 
         @JsonProperty("speed")
         private final BigDecimal speed;
@@ -133,7 +133,7 @@ public final class VerkeersDrukteResource {
         MeasurementResult(AggregateMeasurement measurement) {
             OffsetDateTime dateTime = OffsetDateTime.ofInstant(measurement.dateTime, zoneId);
             this.dateTime = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(dateTime);
-            this.flow = Double.isFinite(measurement.flow) ? BigDecimal.valueOf(measurement.flow).setScale(1, RoundingMode.HALF_UP) : null;
+            this.flow = Double.isFinite(measurement.flow) ? Math.round(measurement.flow) : null;
             this.speed = Double.isFinite(measurement.speed) ? BigDecimal.valueOf(measurement.speed).setScale(1, RoundingMode.HALF_UP) : null;
         }
     }
