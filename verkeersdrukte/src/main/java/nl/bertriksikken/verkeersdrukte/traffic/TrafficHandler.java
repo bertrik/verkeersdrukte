@@ -145,8 +145,8 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
             MeasuredValue.TrafficSpeed speed = speeds.get(i);
             double flowValue = flow.vehicleFlow.dataError ? Double.NaN : flow.vehicleFlow.vehicleFlowRate;
             double speedValue = speed.averageVehicleSpeed.dataError ? Double.NaN : speed.averageVehicleSpeed.speed;
-            sumFlowSpeed += flow.vehicleFlow.vehicleFlowRate * speed.averageVehicleSpeed.speed;
-            sumFlow += flow.vehicleFlow.vehicleFlowRate;
+            sumFlowSpeed += flowValue * speedValue;
+            sumFlow += flowValue;
         }
         double aggregateSpeed = sumFlowSpeed / sumFlow;
         return new AggregateMeasurement(dateTime, sumFlow, aggregateSpeed);
