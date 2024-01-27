@@ -33,7 +33,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
 
     private static final Logger LOG = LoggerFactory.getLogger(TrafficHandler.class);
 
-    private final Map<String, Subscription> subscriptions = new ConcurrentHashMap<>();
+    private final Map<String, INotifyData> subscriptions = new ConcurrentHashMap<>();
 
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private final NdwClient ndwClient;
@@ -175,8 +175,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     @Override
     public void subscribe(String clientId, INotifyData callback) {
         LOG.info("Subscribe: {}", clientId);
-        Subscription subscription = new Subscription(clientId, callback);
-        subscriptions.put(clientId, subscription);
+        subscriptions.put(clientId, callback);
     }
 
     @Override
@@ -197,8 +196,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     }
 
     private void notifyClients() {
-        List<Subscription> copy = List.copyOf(subscriptions.values());
-        copy.forEach(subscription -> subscription.callback.notifyUpdate());
+        List.copyOf(subscriptions.values()).forEach(INotifyData::notifyUpdate);
     }
 
     private FeatureCollection readShapeFile(InputStream shpStream, InputStream dbfStream) throws IOException {
@@ -214,15 +212,5 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
             }
         }
         return collection;
-    }
-
-    private static final class Subscription {
-        private final String clientId;
-        private final INotifyData callback;
-
-        Subscription(String clientId, INotifyData callback) {
-            this.clientId = clientId;
-            this.callback = callback;
-        }
     }
 }
