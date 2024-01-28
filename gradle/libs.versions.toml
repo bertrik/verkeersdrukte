@@ -10,8 +10,6 @@ jackson-xml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-xm
 jackson-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
 jackson-jdk8 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jdk8", version.ref = "jackson" }
 
-guava = { module = "com.google.guava:guava", version = "33.0.0-jre" }
-
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref= "retrofit" }
 retrofit-jackson = { module = "com.squareup.retrofit2:converter-jackson", version.ref= "retrofit" }
 retrofit-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref= "retrofit" }
@@ -27,7 +25,7 @@ junit = { module = "junit:junit", version = "4.13.2" }
 [bundles]
 jackson = ["jackson-bind", "jackson-yaml", "jackson-xml", "jackson-jsr310", "jackson-jdk8"]
 retrofit = ["retrofit", "retrofit-jackson", "retrofit-scalars"]
-dropwizard = ["dropwizard-core", "dropwizard-assets", "guava"]
+dropwizard = ["dropwizard-core", "dropwizard-assets"]
 
 [plugins]
 versions = { id = "com.github.ben-manes.versions", version = "0.51.0" }
