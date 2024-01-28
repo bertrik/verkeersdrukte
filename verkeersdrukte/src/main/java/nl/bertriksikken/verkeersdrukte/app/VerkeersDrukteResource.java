@@ -5,10 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dropwizard.jersey.caching.CacheControl;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.sse.OutboundSseEvent;
@@ -79,40 +76,42 @@ public final class VerkeersDrukteResource {
     @Path("/dynamic/{location}/events")
     @Produces(MediaType.SERVER_SENT_EVENTS)
     public void getTrafficEvents(@Context Sse sse, @Context SseEventSink sseEventSink, @PathParam("location") String location) {
-        // attempt to get initial data
-        AggregateMeasurement measurement = handler.getDynamicData(location);
-        if (measurement == null) {
-            sseEventSink.close();
-            return;
+        // verify that location exists
+        if (handler.getStaticData(location) == null) {
+            throw new NotFoundException();
         }
 
+        //  get initial data
         String clientId = "client-" + atomicInteger.incrementAndGet();
-        BlockingQueue<String> queue = new ArrayBlockingQueue<>(10);
-        handler.subscribe(clientId, () -> eventCallback(clientId, queue, location));
+        BlockingQueue<AggregateMeasurement> queue = new ArrayBlockingQueue<>(10);
         eventCallback(clientId, queue, location);
+
+        // subscribe to updates
+        handler.subscribe(clientId, () -> eventCallback(clientId, queue, location));
         try {
             while (!sseEventSink.isClosed()) {
-                String value = queue.take();
-                OutboundSseEvent event = sse.newEvent("measurement", value);
-                sseEventSink.send(event);
+                AggregateMeasurement measurement = queue.poll(5, TimeUnit.SECONDS);
+                if (measurement != null) {
+                    String id = String.valueOf(measurement.dateTime.getEpochSecond() / 60);
+                    String json = mapper.writeValueAsString(new MeasurementResult(measurement));
+                    OutboundSseEvent event = sse.newEventBuilder().id(id).name("measurement").data(json).build();
+                    sseEventSink.send(event);
+                }
             }
-        } catch (InterruptedException e) {
-            LOG.info("subscription interrupted");
+        } catch (InterruptedException | JsonProcessingException e) {
+            LOG.warn("Error sending SSE: {}", e.getMessage());
         } finally {
             handler.unsubscribe(clientId);
+            sseEventSink.close();
         }
     }
 
-    private void eventCallback(String clientId, Queue<String> queue, String location) {
-        Optional<MeasurementResult> dynamic = getDynamic(location);
-        try {
-            if (dynamic.isPresent()) {
-                String json = mapper.writeValueAsString(dynamic.get());
-                queue.offer(json);
+    private void eventCallback(String clientId, Queue<AggregateMeasurement> queue, String location) {
+        AggregateMeasurement aggregateMeasurement = handler.getDynamicData(location);
+        if (aggregateMeasurement != null) {
+            if (!queue.offer(aggregateMeasurement)) {
+                LOG.warn("Queue for client '{}' location '{}' got stuck", clientId, location);
             }
-        } catch (JsonProcessingException e) {
-            LOG.error("Caught exception", e);
-            handler.unsubscribe(clientId);
         }
     }
 

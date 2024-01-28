@@ -42,7 +42,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private FeatureCollection shapeFile;
 
     public TrafficHandler(NdwConfig config) {
-        this.ndwClient = NdwClient.create(config);
+        ndwClient = NdwClient.create(config);
         xmlMapper.findAndRegisterModules();
     }
 
