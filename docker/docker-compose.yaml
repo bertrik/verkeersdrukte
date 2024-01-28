@@ -6,3 +6,6 @@ services:
     restart: always
     volumes:
       - "./configuration.yaml:/opt/verkeersdrukte/configuration.yaml:ro"
+    ports:
+    - "9002:9002"
+
