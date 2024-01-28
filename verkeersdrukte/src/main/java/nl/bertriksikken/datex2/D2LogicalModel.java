@@ -33,7 +33,7 @@ public final class D2LogicalModel {
     }
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
-    @JsonSubTypes({@Type(value = MeasuredDataPublication.class, name = "MeasuredDataPublication")})
+    @JsonSubTypes({@Type(value = MeasuredDataPublication.class, name = MeasuredDataPublication.TYPE)})
     public static abstract class PayloadPublication {
         @JacksonXmlProperty(localName = "type", isAttribute = true)
         public final String type;
@@ -48,17 +48,19 @@ public final class D2LogicalModel {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class MeasuredDataPublication extends PayloadPublication {
+
+        public static final String TYPE = "MeasuredDataPublication";
         @JacksonXmlElementWrapper(useWrapping = false)
         @JacksonXmlProperty(localName = "siteMeasurements")
         public List<SiteMeasurements> siteMeasurementsList = new ArrayList<>();
 
         public MeasuredDataPublication() {
             // jackson no-arg constructor
-            super("MeasuredDataPublication");
+            this(Instant.now());
         }
 
         public MeasuredDataPublication(Instant publicationTime) {
-            super("MeasuredDataPublication");
+            super(TYPE);
             this.publicationTime = publicationTime.truncatedTo(ChronoUnit.SECONDS).toString();
         }
 

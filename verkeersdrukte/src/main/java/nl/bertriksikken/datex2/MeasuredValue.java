@@ -59,7 +59,7 @@ public final class MeasuredValue {
     }
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
-    @JsonSubTypes({@Type(value = TrafficFlow.class, name = "TrafficFlow"), @Type(value = TrafficSpeed.class, name = "TrafficSpeed")})
+    @JsonSubTypes({@Type(value = TrafficFlow.class, name = TrafficFlow.TYPE), @Type(value = TrafficSpeed.class, name = TrafficSpeed.TYPE)})
     public static abstract class BasicData {
         @JacksonXmlProperty(localName = "type", isAttribute = true)
         public final String type;
