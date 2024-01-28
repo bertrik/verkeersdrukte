@@ -88,7 +88,7 @@ public final class VerkeersDrukteResource {
 
         // subscribe to updates
         handler.subscribe(clientId, () -> eventCallback(clientId, queue, location));
-        try {
+        try (sseEventSink) {
             while (!sseEventSink.isClosed()) {
                 AggregateMeasurement measurement = queue.poll(5, TimeUnit.SECONDS);
                 if (measurement != null) {
@@ -102,7 +102,6 @@ public final class VerkeersDrukteResource {
             LOG.warn("Error sending SSE: {}", e.getMessage());
         } finally {
             handler.unsubscribe(clientId);
-            sseEventSink.close();
         }
     }
 
