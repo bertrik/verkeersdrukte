@@ -1,14 +1,14 @@
 package nl.bertriksikken.shapefile;
 
 import java.nio.ByteBuffer;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
 public abstract class ShapeRecord {
 
     private final EShapeType type;
-    private final Map<String, Object> properties = new HashMap<>();
+    private final Map<String, Object> properties = new LinkedHashMap<>();
 
     ShapeRecord(EShapeType type) {
         this.type = type;
@@ -19,7 +19,7 @@ public abstract class ShapeRecord {
     }
 
     public Map<String, Object> getProperties() {
-        return Map.copyOf(properties);
+        return new LinkedHashMap<>(properties);
     }
 
     public EShapeType getType() {

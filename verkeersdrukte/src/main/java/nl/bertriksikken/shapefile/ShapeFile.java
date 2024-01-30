@@ -14,8 +14,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Properties;
 
 public final class ShapeFile {
 
@@ -33,7 +33,7 @@ public final class ShapeFile {
     public static ShapeFile read(InputStream shpStream, InputStream dbfStream) throws IOException {
         ShapeFile shapeFile = new ShapeFile();
         try {
-            List<Properties> properties = shapeFile.readDbf(dbfStream);
+            List<ShapeProperties> properties = shapeFile.readDbf(dbfStream);
             shapeFile.readShp(shpStream, properties);
             return shapeFile;
         } catch (BufferUnderflowException e) {
@@ -41,13 +41,13 @@ public final class ShapeFile {
         }
     }
 
-    List<Properties> readDbf(InputStream stream) throws IOException {
-        List<Properties> propertiesList = new ArrayList<>();
+    List<ShapeProperties> readDbf(InputStream stream) throws IOException {
+        List<ShapeProperties> propertiesList = new ArrayList<>();
         try (DbfReader reader = new DbfReader(stream)) {
             DbfMetadata meta = reader.getMetadata();
             DbfRecord record;
             while ((record = reader.read()) != null) {
-                Properties properties = new Properties();
+                ShapeProperties properties = new ShapeProperties();
                 for (DbfField field : meta.getFields()) {
                     String name = field.getName();
                     String value = record.getString(name, StandardCharsets.UTF_8);
@@ -61,7 +61,7 @@ public final class ShapeFile {
         return propertiesList;
     }
 
-    void readShp(InputStream stream, List<Properties> propertiesList) throws IOException, BufferUnderflowException {
+    void readShp(InputStream stream, List<ShapeProperties> propertiesList) throws IOException, BufferUnderflowException {
         byte[] data = stream.readAllBytes();
         ByteBuffer bb = ByteBuffer.wrap(data);
 
@@ -107,9 +107,9 @@ public final class ShapeFile {
             ShapeRecord record = readRecord(recordData);
             if (record != null) {
                 // add properties from the DBF file
-                Properties properties = propertiesList.get(index);
+                ShapeProperties properties = propertiesList.get(index);
                 if (properties != null) {
-                    properties.forEach((name, value) -> record.addProperty((String) name, value));
+                    properties.forEach(record::addProperty);
                 }
                 records.add(record);
             }
@@ -135,4 +135,7 @@ public final class ShapeFile {
     public List<ShapeRecord> getRecords() {
         return List.copyOf(records);
     }
+
+    private static final class ShapeProperties extends LinkedHashMap<String, Object> {}
+
 }

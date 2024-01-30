@@ -43,7 +43,7 @@ public final class FeatureCollection extends GeoJsonObject {
         }
 
         public Map<String, Object> getProperties() {
-            return Map.copyOf(properties);
+            return new LinkedHashMap<>(properties);
         }
     }
 
