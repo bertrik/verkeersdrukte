@@ -1,0 +1,21 @@
+# copy this to /etc/systemd/system
+# then sudo systemctl daemon-reload
+# and enable with sudo systemctl enable --now stofradar
+
+[Unit]
+Description=verkeersdrukte
+After=network.target
+
+[Service]
+WorkingDirectory=/home/bertrik/verkeersdrukte
+ExecStart=/home/bertrik/verkeersdrukte/bin/verkeersdrukte
+Type=simple
+KillMode=process
+Restart=on-failure
+RestartSec=10s
+TimeoutStopSec=15s
+User=bertrik
+Environment="VERKEERSDRUKTE_OPTS=-Xmx64M"
+
+[Install]
+WantedBy=multi-user.target
