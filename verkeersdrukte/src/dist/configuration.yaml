@@ -15,6 +15,7 @@ logging: !<default>
       logFormat: "%d{yyyy-MM-dd} | %d{HH:mm:ss.SSS} | %-15.15thread | %5p | %-25.25logger{25} | %m%n"
       target: "STDOUT"
 server: !<default>
+  adminConnectors: []
   applicationConnectors:
     - type: http
       port: 9002
