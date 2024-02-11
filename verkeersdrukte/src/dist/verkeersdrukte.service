@@ -1,6 +1,6 @@
 # copy this to /etc/systemd/system
 # then sudo systemctl daemon-reload
-# and enable with sudo systemctl enable --now stofradar
+# and enable with sudo systemctl enable --now verkeersdrukte
 
 [Unit]
 Description=verkeersdrukte
@@ -15,7 +15,7 @@ Restart=on-failure
 RestartSec=10s
 TimeoutStopSec=15s
 User=bertrik
-Environment="VERKEERSDRUKTE_OPTS=-Xmx64M"
+Environment="VERKEERSDRUKTE_OPTS=-Xmx128M"
 
 [Install]
 WantedBy=multi-user.target
