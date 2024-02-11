@@ -55,13 +55,24 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
 
         // schedule regular fetches, starting immediately
         LOG.info("Schedule download ...");
-        executor.schedule(this::downloadTrafficSpeed, 0, TimeUnit.SECONDS);
+        schedule(this::downloadTrafficSpeed, Duration.ZERO);
+    }
+
+    private void schedule(Runnable action, Duration interval) {
+        Runnable runnable = () -> {
+            try {
+                action.run();
+            } catch (Throwable e) {
+                LOG.warn("Caught throwable in scheduled task", e);
+            }
+        };
+        executor.schedule(runnable, interval.toMillis(), TimeUnit.MILLISECONDS);
     }
 
     @Override
     public void stop() {
         try {
-            executor.shutdown();
+            executor.shutdownNow();
             if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
                 LOG.warn("Executor did not terminate");
             }
@@ -90,7 +101,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
             interval = interval.plusSeconds(60);
         }
         LOG.info("Scheduling next download in {}", interval);
-        executor.schedule(this::downloadTrafficSpeed, interval.toMillis(), TimeUnit.MILLISECONDS);
+        schedule(this::downloadTrafficSpeed, interval);
 
         notifyClients();
     }
@@ -106,7 +117,6 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
             return snapshot;
         }
     }
-
 
     private AggregateMeasurement aggregateValues(SiteMeasurements measurements) {
         Instant dateTime = Instant.parse(measurements.measurementTimeDefault);
