@@ -1,11 +1,10 @@
 package nl.bertriksikken.verkeersdrukte.traffic;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.util.concurrent.Runnables;
 import io.dropwizard.lifecycle.Managed;
-import nl.bertriksikken.datex2.D2LogicalModel;
+import nl.bertriksikken.datex2.MeasuredDataPublication;
 import nl.bertriksikken.datex2.MeasuredValue;
 import nl.bertriksikken.datex2.SiteMeasurements;
 import nl.bertriksikken.geojson.FeatureCollection;
@@ -98,15 +97,9 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
 
     private MeasurementCache decode(ByteArrayInputStream inputStream) throws IOException {
         try (GZIPInputStream gzis = new GZIPInputStream(inputStream)) {
-            JsonNode node = xmlMapper.readValue(gzis, JsonNode.class);
-            JsonNode d2LogicalModel = node.at("/Body/d2LogicalModel");
-            D2LogicalModel model = xmlMapper.treeToValue(d2LogicalModel, D2LogicalModel.class);
-            D2LogicalModel.PayloadPublication payloadPublication = model.payloadPublication;
-            LOG.info("Payload publication: type {}, time {}", payloadPublication.type, payloadPublication.publicationTime);
-            D2LogicalModel.MeasuredDataPublication measuredDataPublication = (D2LogicalModel.MeasuredDataPublication) payloadPublication;
-            Instant publicationTime = Instant.parse(measuredDataPublication.publicationTime);
-            MeasurementCache snapshot = new MeasurementCache(publicationTime);
-            for (SiteMeasurements measurements : measuredDataPublication.siteMeasurementsList) {
+            MeasuredDataPublication publication = MeasuredDataPublication.parse(gzis);
+            MeasurementCache snapshot = new MeasurementCache(publication.getPublicationTime());
+            for (SiteMeasurements measurements : publication.getSiteMeasurementsList()) {
                 AggregateMeasurement aggregateMeasurement = aggregateValues(measurements);
                 snapshot.put(measurements.reference.id, aggregateMeasurement);
             }
