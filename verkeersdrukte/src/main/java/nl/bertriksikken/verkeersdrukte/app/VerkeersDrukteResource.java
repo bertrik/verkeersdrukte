@@ -56,12 +56,11 @@ public final class VerkeersDrukteResource {
     public FeatureCollection getStatic() {
         FeatureCollection featureCollection = new FeatureCollection();
         for (FeatureCollection.Feature f : handler.getStaticData().getFeatures()) {
-            // copy feature with all original properties
-            FeatureCollection.Feature feature = new FeatureCollection.Feature(f.getGeometry());
-            f.getProperties().forEach(feature::addProperty);
-            // add extra property with dynamic data URL
+            FeatureCollection.Feature feature = new FeatureCollection.Feature(f);
             String location = (String) f.getProperties().getOrDefault("dgl_loc", "");
             if (!location.isEmpty()) {
+                String staticDataUrl = config.getBaseUrl() + TRAFFIC_PATH + STATIC_PATH + "/" + location;
+                feature.addProperty("staticDataUrl", staticDataUrl);
                 String dynamicDataUrl = config.getBaseUrl() + TRAFFIC_PATH + DYNAMIC_PATH + "/" + location;
                 feature.addProperty("dynamicDataUrl", dynamicDataUrl);
             }

@@ -38,6 +38,12 @@ public final class FeatureCollection extends GeoJsonObject {
             this.geometry = geometry;
         }
 
+        // copy-constructor
+        public Feature(Feature feature) {
+            this(feature.geometry);
+            properties.putAll(feature.properties);
+        }
+
         public GeoJsonGeometry getGeometry() {
             return geometry;
         }
