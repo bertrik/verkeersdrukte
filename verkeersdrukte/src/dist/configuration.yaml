@@ -2,6 +2,9 @@
 ndw:
   host: "https://opendata.ndw.nu/"
   timeout: 30
+traffic:
+  timeZone: "Europe/Amsterdam"
+  baseUrl: "http://stofradar.nl:9002"
 logging: !<default>
   level: "INFO"
   loggers: {}

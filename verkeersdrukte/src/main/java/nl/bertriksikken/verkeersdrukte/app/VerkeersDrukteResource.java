@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.Queue;
@@ -30,38 +29,55 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@Path("/traffic")
+@Path(VerkeersDrukteResource.TRAFFIC_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 public final class VerkeersDrukteResource {
     private static final Logger LOG = LoggerFactory.getLogger(VerkeersDrukteResource.class);
+
+    static final String TRAFFIC_PATH = "/traffic";
+    static final String STATIC_PATH = "/static";
+    static final String DYNAMIC_PATH = "/dynamic";
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private final ITrafficHandler handler;
     private final AtomicInteger atomicInteger = new AtomicInteger();
 
-    private final ZoneId zoneId;
+    private final TrafficConfig config;
 
     VerkeersDrukteResource(ITrafficHandler handler, TrafficConfig config) {
         this.handler = handler;
+        this.config = config;
         mapper.findAndRegisterModules();
-        zoneId = config.getTimeZone();
     }
 
     @GET
-    @Path("/static")
+    @Path(STATIC_PATH)
     public FeatureCollection getStatic() {
-        return handler.getStaticData();
+        FeatureCollection featureCollection = new FeatureCollection();
+        for (FeatureCollection.Feature f : handler.getStaticData().getFeatures()) {
+            // copy feature with all original properties
+            FeatureCollection.Feature feature = new FeatureCollection.Feature(f.getGeometry());
+            f.getProperties().forEach(feature::addProperty);
+            // add extra property with dynamic data URL
+            String location = (String) f.getProperties().getOrDefault("dgl_loc", "");
+            if (!location.isEmpty()) {
+                String dynamicDataUrl = config.getBaseUrl() + TRAFFIC_PATH + DYNAMIC_PATH + "/" + location;
+                feature.addProperty("dynamicDataUrl", dynamicDataUrl);
+            }
+            featureCollection.add(feature);
+        }
+        return featureCollection;
     }
 
     @GET
-    @Path("/static/{location}")
+    @Path(STATIC_PATH + "/{location}")
     public Optional<FeatureCollection.Feature> getStatic(@PathParam("location") String location) {
         return Optional.ofNullable(handler.getStaticData(location));
     }
 
     @GET
-    @Path("/dynamic/{location}")
+    @Path(DYNAMIC_PATH + "/{location}")
     @CacheControl(maxAge = 1, maxAgeUnit = TimeUnit.MINUTES)
     public Optional<MeasurementResult> getDynamic(@PathParam("location") String location) {
         // return snapshot of most recent measurement for location
@@ -73,7 +89,7 @@ public final class VerkeersDrukteResource {
     }
 
     @GET
-    @Path("/dynamic/{location}/events")
+    @Path(DYNAMIC_PATH + "/{location}/events")
     @Produces(MediaType.SERVER_SENT_EVENTS)
     public void getTrafficEvents(@Context Sse sse, @Context SseEventSink sseEventSink, @PathParam("location") String location) {
         // verify that location exists
@@ -129,7 +145,7 @@ public final class VerkeersDrukteResource {
         private final BigDecimal speed;
 
         MeasurementResult(AggregateMeasurement measurement) {
-            OffsetDateTime dateTime = OffsetDateTime.ofInstant(measurement.dateTime, zoneId);
+            OffsetDateTime dateTime = OffsetDateTime.ofInstant(measurement.dateTime, config.getTimeZone());
             this.dateTime = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(dateTime);
             this.flow = Double.isFinite(measurement.flow) ? Math.round(measurement.flow) : null;
             this.speed = Double.isFinite(measurement.speed) ? BigDecimal.valueOf(measurement.speed).setScale(1, RoundingMode.HALF_UP) : null;

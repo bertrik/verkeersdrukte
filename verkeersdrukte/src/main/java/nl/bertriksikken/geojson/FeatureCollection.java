@@ -38,12 +38,16 @@ public final class FeatureCollection extends GeoJsonObject {
             this.geometry = geometry;
         }
 
-        public void addProperty(String name, Object value) {
-            properties.put(name, value);
+        public GeoJsonGeometry getGeometry() {
+            return geometry;
         }
 
         public Map<String, Object> getProperties() {
             return new LinkedHashMap<>(properties);
+        }
+
+        public void addProperty(String name, Object value) {
+            properties.put(name, value);
         }
     }
 

@@ -12,8 +12,14 @@ public final class TrafficConfig {
 
     @JsonProperty("timeZone")
     private String timeZone = "Europe/Amsterdam";
+    @JsonProperty("baseUrl")
+    private String baseUrl = "http://stofradar.nl:9002";
 
     public ZoneId getTimeZone() {
         return ZoneId.of(timeZone);
+    }
+
+    public String getBaseUrl() {
+        return baseUrl;
     }
 }
