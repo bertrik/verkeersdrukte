@@ -6,7 +6,9 @@ import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.core.Application;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
+import jakarta.servlet.FilterRegistration;
 import nl.bertriksikken.verkeersdrukte.traffic.TrafficHandler;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +35,13 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
         environment.healthChecks().register("ndw", new VerkeersDrukteHealthCheck(ndwHandler));
         environment.jersey().register(resource);
         environment.lifecycle().manage(ndwHandler);
+
+        // set up CORS
+        FilterRegistration.Dynamic cors = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
+        cors.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
+        cors.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "X-Requested-With,Content-Type,Accept,Origin");
+        cors.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,GET,PUT,POST,DELETE,HEAD");
+        cors.addMappingForUrlPatterns(null, false, "/*");
     }
 
     public static void main(String[] args) throws Exception {
