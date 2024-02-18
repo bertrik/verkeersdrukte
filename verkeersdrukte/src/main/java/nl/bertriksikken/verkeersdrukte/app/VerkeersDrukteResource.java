@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -55,18 +56,29 @@ public final class VerkeersDrukteResource {
     @Path(STATIC_PATH)
     public FeatureCollection getStatic() {
         FeatureCollection featureCollection = new FeatureCollection();
-        for (FeatureCollection.Feature f : handler.getStaticData().getFeatures()) {
-            FeatureCollection.Feature feature = new FeatureCollection.Feature(f);
-            String location = (String) f.getProperties().getOrDefault("dgl_loc", "");
-            if (!location.isEmpty()) {
-                String staticDataUrl = config.getBaseUrl() + TRAFFIC_PATH + STATIC_PATH + "/" + location;
-                feature.addProperty("staticDataUrl", staticDataUrl);
-                String dynamicDataUrl = config.getBaseUrl() + TRAFFIC_PATH + DYNAMIC_PATH + "/" + location;
-                feature.addProperty("dynamicDataUrl", dynamicDataUrl);
-            }
-            featureCollection.add(feature);
+        for (FeatureCollection.Feature feature : handler.getStaticData().getFeatures()) {
+            FeatureCollection.Feature updated = addUrlProperties(feature);
+            featureCollection.add(updated);
         }
         return featureCollection;
+    }
+
+    private FeatureCollection.Feature addUrlProperties(FeatureCollection.Feature f) {
+        FeatureCollection.Feature feature = new FeatureCollection.Feature(f);
+        String location = (String) f.getProperties().getOrDefault("dgl_loc", "");
+        if (!location.isEmpty()) {
+            String staticDataUrl = config.getBaseUrl() + TRAFFIC_PATH + STATIC_PATH + "/" + location;
+            feature.addProperty("staticDataUrl", staticDataUrl);
+            String dynamicDataUrl = config.getBaseUrl() + TRAFFIC_PATH + DYNAMIC_PATH + "/" + location;
+            feature.addProperty("dynamicDataUrl", dynamicDataUrl);
+            // streetview, see https://stackoverflow.com/questions/387942/google-street-view-url
+            FeatureCollection.PointGeometry geometry = (FeatureCollection.PointGeometry) feature.getGeometry();
+            int angle = Integer.parseInt((String) f.getProperties().getOrDefault("meetricht", 0));
+            String streetviewUrl = String.format(Locale.ROOT, "https://maps.google.com/maps?layer=c&cbll=%.6f,%.6f&cbp=12,%d,0,0,0",
+                    geometry.getLatitude(), geometry.getLongitude(), angle);
+            feature.addProperty("streetviewUrl", streetviewUrl);
+        }
+        return feature;
     }
 
     @GET
