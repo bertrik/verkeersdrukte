@@ -4,7 +4,7 @@ ndw:
   timeout: 30
 traffic:
   timeZone: "Europe/Amsterdam"
-  baseUrl: "http://stofradar.nl:9002"
+  baseUrl: "https://stofradar.nl"
 logging: !<default>
   level: "INFO"
   loggers: {}
