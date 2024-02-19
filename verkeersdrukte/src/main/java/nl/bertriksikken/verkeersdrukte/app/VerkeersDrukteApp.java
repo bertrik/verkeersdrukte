@@ -6,9 +6,10 @@ import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.core.Application;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
-import jakarta.servlet.FilterRegistration;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
 import nl.bertriksikken.verkeersdrukte.traffic.TrafficHandler;
-import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,12 +37,12 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
         environment.jersey().register(resource);
         environment.lifecycle().manage(ndwHandler);
 
-        // set up CORS
-        FilterRegistration.Dynamic cors = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
-        cors.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
-        cors.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "X-Requested-With,Content-Type,Accept,Origin");
-        cors.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,GET,PUT,POST,DELETE,HEAD");
-        cors.addMappingForUrlPatterns(null, false, "/*");
+        // Add CORS header to each response
+        environment.jersey().register((ContainerResponseFilter)this::addCorsHeader);
+    }
+
+    private void addCorsHeader(ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
+        responseContext.getHeaders().add("Access-Control-Allow-Origin", "*");
     }
 
     public static void main(String[] args) throws Exception {
