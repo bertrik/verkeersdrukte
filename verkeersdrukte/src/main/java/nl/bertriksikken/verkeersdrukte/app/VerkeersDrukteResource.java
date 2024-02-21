@@ -84,7 +84,11 @@ public final class VerkeersDrukteResource {
     @GET
     @Path(STATIC_PATH + "/{location}")
     public Optional<FeatureCollection.Feature> getStatic(@PathParam("location") String location) {
-        return Optional.ofNullable(handler.getStaticData(location));
+        FeatureCollection.Feature feature = handler.getStaticData(location);
+        if (feature != null) {
+            feature = addUrlProperties(feature);
+        }
+        return Optional.ofNullable(feature);
     }
 
     @GET
