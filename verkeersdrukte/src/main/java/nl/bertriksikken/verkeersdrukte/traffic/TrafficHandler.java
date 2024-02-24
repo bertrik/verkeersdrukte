@@ -119,7 +119,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     }
 
     private AggregateMeasurement aggregateValues(SiteMeasurements measurements) {
-        Instant dateTime = Instant.parse(measurements.measurementTimeDefault);
+        Instant dateTime = measurements.getMeasurementTime();
         // group by type
         List<MeasuredValue.TrafficFlow> flows = new ArrayList<>();
         List<MeasuredValue.TrafficSpeed> speeds = new ArrayList<>();

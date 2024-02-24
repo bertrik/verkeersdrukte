@@ -16,7 +16,7 @@ public final class SiteMeasurements {
     public Reference reference;
 
     @JacksonXmlProperty(localName = "measurementTimeDefault")
-    public String measurementTimeDefault = "";
+    String measurementTimeDefault = "";
 
     @JacksonXmlElementWrapper(useWrapping = false)
     @JacksonXmlProperty(localName = "measuredValue")
@@ -36,9 +36,8 @@ public final class SiteMeasurements {
         this(reference, time.truncatedTo(ChronoUnit.SECONDS).toString());
     }
 
-    public void addMeasuredValue(MeasuredValue.BasicData basicData) {
-        int index = measuredValueList.size() + 1;
-        measuredValueList.add(new MeasuredValue(index, basicData));
+    public Instant getMeasurementTime() {
+        return Instant.parse(measurementTimeDefault);
     }
 
     public static final class Reference {
