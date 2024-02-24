@@ -5,8 +5,6 @@ import java.time.format.DateTimeFormatter;
 
 public final class FileResponse {
 
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.RFC_1123_DATE_TIME;
-
     private final byte[] contents;
     private final Instant lastModified;
 
@@ -16,7 +14,7 @@ public final class FileResponse {
     }
 
     public static FileResponse create(byte[] contents, String lastModified) {
-        Instant date = DATE_TIME_FORMATTER.parse(lastModified, Instant::from);
+        Instant date = DateTimeFormatter.RFC_1123_DATE_TIME.parse(lastModified, Instant::from);
         return new FileResponse(contents, date);
     }
 
