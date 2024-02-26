@@ -1,6 +1,6 @@
 package nl.bertriksikken.verkeersdrukte.traffic;
 
-import nl.bertriksikken.verkeersdrukte.ndw.NdwConfig;
+import nl.bertriksikken.verkeersdrukte.app.VerkeersDrukteAppConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,7 +11,7 @@ public final class TrafficHandlerTest {
     private static final Logger LOG = LoggerFactory.getLogger(TrafficHandlerTest.class);
 
     public static void main(String[] args) throws IOException {
-        NdwConfig config = new NdwConfig();
+        VerkeersDrukteAppConfig config = new VerkeersDrukteAppConfig();
         TrafficHandler trafficHandler = new TrafficHandler(config);
         trafficHandler.start();
         trafficHandler.subscribe("client", TrafficHandlerTest::notifyData);

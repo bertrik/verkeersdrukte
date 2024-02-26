@@ -1,24 +1,24 @@
 package nl.bertriksikken.verkeersdrukte.traffic;
 
-import java.time.Instant;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
+import java.time.Duration;
 
 public final class MeasurementCache {
 
-    private final Instant publishedDateTime;
-    private Map<String, AggregateMeasurement> measurementMap = new ConcurrentHashMap<>();
+    private final Cache<String, AggregateMeasurement> cache;
 
-    MeasurementCache(Instant publishedDateTime) {
-        this.publishedDateTime = publishedDateTime;
+    MeasurementCache(Duration expiryDuration) {
+        cache = CacheBuilder.newBuilder().expireAfterWrite(expiryDuration).build();
     }
 
     public void put(String location, AggregateMeasurement measurement) {
-        measurementMap.put(location, measurement);
+        cache.put(location, measurement);
     }
 
     public AggregateMeasurement get(String location) {
-        return measurementMap.get(location);
+        return cache.getIfPresent(location);
     }
 
 }

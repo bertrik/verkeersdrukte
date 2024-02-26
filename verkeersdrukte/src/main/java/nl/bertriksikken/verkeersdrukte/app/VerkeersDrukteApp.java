@@ -31,7 +31,7 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
 
     @Override
     public void run(VerkeersDrukteAppConfig configuration, Environment environment) {
-        TrafficHandler ndwHandler = new TrafficHandler(configuration.getNdwConfig());
+        TrafficHandler ndwHandler = new TrafficHandler(configuration);
         VerkeersDrukteResource resource = new VerkeersDrukteResource(ndwHandler, configuration.getTrafficConfig());
         environment.healthChecks().register("ndw", new VerkeersDrukteHealthCheck(ndwHandler));
         environment.jersey().register(resource);

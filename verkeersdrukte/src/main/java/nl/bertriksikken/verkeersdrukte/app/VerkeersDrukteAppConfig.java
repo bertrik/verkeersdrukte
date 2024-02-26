@@ -7,7 +7,7 @@ import nl.bertriksikken.verkeersdrukte.ndw.NdwConfig;
 import nl.bertriksikken.verkeersdrukte.traffic.TrafficConfig;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-final class VerkeersDrukteAppConfig extends Configuration {
+public final class VerkeersDrukteAppConfig extends Configuration {
 
     @JsonProperty("ndw")
     private NdwConfig ndwConfig = new NdwConfig();

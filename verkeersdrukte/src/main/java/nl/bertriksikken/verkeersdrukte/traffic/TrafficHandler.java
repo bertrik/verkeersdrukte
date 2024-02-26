@@ -11,9 +11,9 @@ import nl.bertriksikken.geojson.FeatureCollection;
 import nl.bertriksikken.shapefile.EShapeType;
 import nl.bertriksikken.shapefile.ShapeFile;
 import nl.bertriksikken.shapefile.ShapeRecord;
+import nl.bertriksikken.verkeersdrukte.app.VerkeersDrukteAppConfig;
 import nl.bertriksikken.verkeersdrukte.ndw.FileResponse;
 import nl.bertriksikken.verkeersdrukte.ndw.NdwClient;
-import nl.bertriksikken.verkeersdrukte.ndw.NdwConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,12 +37,13 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private final ObjectMapper xmlMapper = new XmlMapper();
     private final NdwClient ndwClient;
-    private MeasurementCache measurementCache = new MeasurementCache(Instant.now());
+    private final MeasurementCache measurementCache;
     private FeatureCollection shapeFile;
 
-    public TrafficHandler(NdwConfig config) {
-        ndwClient = NdwClient.create(config);
+    public TrafficHandler(VerkeersDrukteAppConfig config) {
         xmlMapper.findAndRegisterModules();
+        ndwClient = NdwClient.create(config.getNdwConfig());
+        measurementCache = new MeasurementCache(config.getTrafficConfig().getExpiryDuration());
     }
 
     @Override
@@ -89,7 +90,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
             Duration age = Duration.between(response.getLastModified(), Instant.now());
             next = response.getLastModified().plusSeconds(65);
             LOG.info("Got data, {} bytes, age {}", response.getContents().length, age);
-            measurementCache = decode(new ByteArrayInputStream(response.getContents()));
+            decode(new ByteArrayInputStream(response.getContents()));
         } catch (IOException e) {
             LOG.warn("Download failed", e);
             next = Instant.now().plusSeconds(60);
@@ -106,15 +107,14 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         notifyClients();
     }
 
-    private MeasurementCache decode(ByteArrayInputStream inputStream) throws IOException {
+    private void decode(ByteArrayInputStream inputStream) throws IOException {
         try (GZIPInputStream gzis = new GZIPInputStream(inputStream)) {
             MeasuredDataPublication publication = MeasuredDataPublication.parse(gzis);
-            MeasurementCache snapshot = new MeasurementCache(publication.getPublicationTime());
+            LOG.info("Got data for time {}", publication.getPublicationTime());
             for (SiteMeasurements measurements : publication.getSiteMeasurementsList()) {
                 AggregateMeasurement aggregateMeasurement = aggregateValues(measurements);
-                snapshot.put(measurements.reference.id, aggregateMeasurement);
+                measurementCache.put(measurements.reference.id, aggregateMeasurement);
             }
-            return snapshot;
         }
     }
 
