@@ -179,13 +179,11 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
 
     @Override
     public void subscribe(String clientId, INotifyData callback) {
-        LOG.info("Subscribe: {}", clientId);
         subscriptions.put(clientId, callback);
     }
 
     @Override
     public void unsubscribe(String clientId) {
-        LOG.info("Unsubscribe: {}", clientId);
         subscriptions.remove(clientId);
     }
 

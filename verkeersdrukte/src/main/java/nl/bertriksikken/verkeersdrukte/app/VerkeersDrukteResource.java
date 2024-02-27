@@ -115,14 +115,15 @@ public final class VerkeersDrukteResource {
 
         //  get initial data
         String clientId = "client-" + atomicInteger.incrementAndGet();
-        BlockingQueue<AggregateMeasurement> queue = new ArrayBlockingQueue<>(10);
+        BlockingQueue<AggregateMeasurement> queue = new ArrayBlockingQueue<>(3);
         eventCallback(clientId, queue, location);
 
         // subscribe to updates
+        LOG.info("Subscribing client '{}' for '{}'", clientId, location);
         handler.subscribe(clientId, () -> eventCallback(clientId, queue, location));
         try (sseEventSink) {
             while (!sseEventSink.isClosed()) {
-                AggregateMeasurement measurement = queue.poll(5, TimeUnit.SECONDS);
+                AggregateMeasurement measurement = queue.poll(1, TimeUnit.SECONDS);
                 if (measurement != null) {
                     String id = String.valueOf(measurement.dateTime.getEpochSecond() / 60);
                     String json = mapper.writeValueAsString(new MeasurementResult(measurement));
@@ -133,6 +134,7 @@ public final class VerkeersDrukteResource {
         } catch (InterruptedException | JsonProcessingException e) {
             LOG.warn("Error sending SSE: {}", e.getMessage());
         } finally {
+            LOG.info("Unsubscribing client '{}' for '{}'", clientId, location);
             handler.unsubscribe(clientId);
         }
     }
