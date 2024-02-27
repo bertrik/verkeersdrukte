@@ -37,12 +37,15 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
         environment.jersey().register(resource);
         environment.lifecycle().manage(ndwHandler);
 
-        // Add CORS header to each response
-        environment.jersey().register((ContainerResponseFilter)this::addCorsHeader);
+        // Add headers to each response
+        environment.jersey().register((ContainerResponseFilter)this::addHeaders);
     }
 
-    private void addCorsHeader(ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
+    private void addHeaders(ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
+        // CORS header
         responseContext.getHeaders().add("Access-Control-Allow-Origin", "*");
+        // nginx header to make SSE work
+        responseContext.getHeaders().add("X-Accel-Buffering", "no");
     }
 
     public static void main(String[] args) throws Exception {

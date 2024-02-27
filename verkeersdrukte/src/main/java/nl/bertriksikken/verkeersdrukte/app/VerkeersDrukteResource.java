@@ -106,6 +106,7 @@ public final class VerkeersDrukteResource {
     @GET
     @Path(DYNAMIC_PATH + "/{location}/events")
     @Produces(MediaType.SERVER_SENT_EVENTS)
+    @CacheControl(noCache = true)
     public void getTrafficEvents(@Context Sse sse, @Context SseEventSink sseEventSink, @PathParam("location") String location) {
         // verify that location exists
         if (handler.getStaticData(location) == null) {
