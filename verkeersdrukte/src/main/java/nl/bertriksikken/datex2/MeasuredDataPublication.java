@@ -14,7 +14,6 @@ import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 
 public final class MeasuredDataPublication {
     private static final SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
@@ -51,8 +50,7 @@ public final class MeasuredDataPublication {
         private static final String PUBLICATION_TIME = "d2LogicalModel/payloadPublication/publicationTime";
         private static final XmlMapper mapper = new XmlMapper();
         private final MeasuredDataPublication publication;
-        private final Stack<String> stack = new Stack<>();
-        private final StringBuilder xml = new StringBuilder();
+        private final SaxCollector collector = new SaxCollector();
 
         private StreamingHandler(MeasuredDataPublication publication) {
             this.publication = publication;
@@ -60,43 +58,32 @@ public final class MeasuredDataPublication {
 
         @Override
         public void startElement(String uri, String localName, String qName, Attributes attributes) {
-            stack.push(qName);
-            String path = getPath();
+            String path = collector.updatePath(qName);
             if (path.endsWith(SITE_MEASUREMENTS) || path.endsWith(PUBLICATION_TIME)) {
-                xml.setLength(0);
+                collector.resetElement();
             }
-            xml.append("<").append(qName);
-            for (int i = 0; i < attributes.getLength(); i++) {
-                xml.append(" ").append(attributes.getQName(i)).append("=\"").append(attributes.getValue(i)).append("\"");
-            }
-            xml.append(">");
+            collector.appendBegin(qName, attributes);
         }
 
         @Override
         public void endElement(String uri, String localName, String qName) throws SAXException {
-            xml.append("</").append(qName).append(">");
-            String path = getPath();
+            String path = collector.appendEnd(qName);
             try {
                 if (path.endsWith(PUBLICATION_TIME)) {
-                    String publicationTime = mapper.readValue(xml.toString(), String.class);
+                    String publicationTime = mapper.readValue(collector.getElement(), String.class);
                     publication.publicationTime = Instant.parse(publicationTime);
                 } else if (path.endsWith(SITE_MEASUREMENTS)) {
-                    SiteMeasurements siteMeasurements = mapper.readValue(xml.toString(), SiteMeasurements.class);
+                    SiteMeasurements siteMeasurements = mapper.readValue(collector.getElement(), SiteMeasurements.class);
                     publication.addSiteMeasurements(siteMeasurements);
                 }
             } catch (JsonProcessingException e) {
                 throw new SAXException(e);
             }
-            stack.pop();
         }
 
         @Override
         public void characters(char[] ch, int start, int length) {
-            xml.append(ch, start, length);
-        }
-
-        private String getPath() {
-            return String.join("/", stack);
+            collector.appendData(ch, start, length);
         }
     }
 
