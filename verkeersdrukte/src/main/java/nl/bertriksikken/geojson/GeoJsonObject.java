@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * The base type for all GeoJSON objects.
  */
-public class GeoJsonObject {
+public abstract class GeoJsonObject {
 
     @JsonProperty("type")
     public final String type;
