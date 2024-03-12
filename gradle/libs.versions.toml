@@ -1,5 +1,5 @@
 [versions]
-jackson = "2.16.1"
+jackson = "2.16.2"
 retrofit = "2.9.0"
 dropwizard = "4.0.7"
 
