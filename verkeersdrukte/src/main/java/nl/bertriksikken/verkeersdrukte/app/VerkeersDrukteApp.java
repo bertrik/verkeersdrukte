@@ -14,11 +14,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Map;
 
 public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig> {
 
     private static final Logger LOG = LoggerFactory.getLogger(VerkeersDrukteApp.class);
     private static final String CONFIG_FILE = "configuration.yaml";
+    private Map<String, String> headers = Map.of();
 
     private VerkeersDrukteApp() {
     }
@@ -31,6 +33,8 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
 
     @Override
     public void run(VerkeersDrukteAppConfig configuration, Environment environment) {
+        headers = configuration.getHeaders();
+
         TrafficHandler ndwHandler = new TrafficHandler(configuration);
         VerkeersDrukteResource resource = new VerkeersDrukteResource(ndwHandler, configuration.getTrafficConfig());
         environment.healthChecks().register("ndw", new VerkeersDrukteHealthCheck(ndwHandler));
@@ -38,14 +42,11 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
         environment.lifecycle().manage(ndwHandler);
 
         // Add headers to each response
-        environment.jersey().register((ContainerResponseFilter)this::addHeaders);
+        environment.jersey().register((ContainerResponseFilter) this::addHeaders);
     }
 
     private void addHeaders(ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
-        // CORS header
-        responseContext.getHeaders().add("Access-Control-Allow-Origin", "*");
-        // nginx header to make SSE work
-        responseContext.getHeaders().add("X-Accel-Buffering", "no");
+        headers.forEach((header,value) -> responseContext.getHeaders().add(header, value));
     }
 
     public static void main(String[] args) throws Exception {

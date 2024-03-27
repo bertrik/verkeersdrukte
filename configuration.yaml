@@ -4,6 +4,7 @@ ndw:
   timeout: 30
 traffic:
   timeZone: "Europe/Amsterdam"
+headers: {}
 logging: !<default>
   level: "INFO"
   loggers: {}

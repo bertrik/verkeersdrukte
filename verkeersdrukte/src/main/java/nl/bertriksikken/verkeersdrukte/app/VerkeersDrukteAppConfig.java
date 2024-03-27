@@ -6,6 +6,8 @@ import io.dropwizard.core.Configuration;
 import nl.bertriksikken.verkeersdrukte.ndw.NdwConfig;
 import nl.bertriksikken.verkeersdrukte.traffic.TrafficConfig;
 
+import java.util.Map;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class VerkeersDrukteAppConfig extends Configuration {
 
@@ -13,6 +15,8 @@ public final class VerkeersDrukteAppConfig extends Configuration {
     private NdwConfig ndwConfig = new NdwConfig();
     @JsonProperty("traffic")
     private TrafficConfig trafficConfig = new TrafficConfig();
+    @JsonProperty("headers")
+    private Map<String, String> headers = Map.of();
 
     public NdwConfig getNdwConfig() {
         return ndwConfig;
@@ -22,4 +26,7 @@ public final class VerkeersDrukteAppConfig extends Configuration {
         return trafficConfig;
     }
 
+    public Map<String, String> getHeaders() {
+        return Map.copyOf(headers);
+    }
 }

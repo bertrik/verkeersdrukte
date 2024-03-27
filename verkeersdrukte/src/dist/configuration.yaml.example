@@ -5,6 +5,9 @@ ndw:
 traffic:
   timeZone: "Europe/Amsterdam"
   baseUrl: "https://stofradar.nl"
+headers:
+  Access-Control-Allow-Origin: "*"
+  X-Accel-Buffering: "no"
 logging: !<default>
   level: "INFO"
   loggers: {}
