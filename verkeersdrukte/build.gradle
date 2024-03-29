@@ -7,10 +7,12 @@ application {
 dependencies {
     implementation libs.bundles.retrofit
     implementation libs.bundles.jackson
-    implementation libs.bundles.dropwizard
-    implementation libs.jdbf
 
-    // https://mvnrepository.com/artifact/org.glassfish.jersey.media/jersey-media-sse
+    implementation libs.dropwizard.core
+    implementation libs.dropwizard.assets
+    implementation libs.dropwizard.swagger
+    implementation libs.jdbf
     implementation libs.jersey.media.sse
+    implementation libs.swagger.annotations
 }
 

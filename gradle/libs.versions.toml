@@ -14,18 +14,20 @@ retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref= "retrofit"
 retrofit-jackson = { module = "com.squareup.retrofit2:converter-jackson", version.ref= "retrofit" }
 retrofit-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref= "retrofit" }
 
-dropwizard-core = { module = "io.dropwizard:dropwizard-core", version.ref = "dropwizard" }
 dropwizard-assets = { module = "io.dropwizard:dropwizard-assets", version.ref = "dropwizard" }
+dropwizard-core = { module = "io.dropwizard:dropwizard-core", version.ref = "dropwizard" }
+dropwizard-swagger = { module = "com.smoketurner:dropwizard-swagger", version = "4.0.5-1" }
 
 jersey-media-sse = { module = "org.glassfish.jersey.media:jersey-media-sse", version = "3.1.5" }
 jdbf = { module = "com.github.spyhunter99:jdbf", version = "2.2.4" }
 
 junit = { module = "junit:junit", version = "4.13.2" }
 
+swagger-annotations = { module = "io.swagger:swagger-annotations", version = "1.6.14" }
+
 [bundles]
 jackson = ["jackson-bind", "jackson-yaml", "jackson-xml", "jackson-jsr310", "jackson-jdk8"]
 retrofit = ["retrofit", "retrofit-jackson", "retrofit-scalars"]
-dropwizard = ["dropwizard-core", "dropwizard-assets"]
 
 [plugins]
 versions = { id = "com.github.ben-manes.versions", version = "0.51.0" }

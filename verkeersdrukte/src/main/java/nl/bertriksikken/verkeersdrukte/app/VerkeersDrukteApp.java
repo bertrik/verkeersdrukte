@@ -4,8 +4,11 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.core.Application;
+import io.dropwizard.core.Configuration;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
+import io.federecio.dropwizard.swagger.SwaggerBundle;
+import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.container.ContainerResponseFilter;
@@ -29,6 +32,10 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
     public void initialize(Bootstrap<VerkeersDrukteAppConfig> bootstrap) {
         bootstrap.getObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
         bootstrap.addBundle(new AssetsBundle("/assets/verkeersdrukte.png", "/favicon.ico"));
+
+        SwaggerBundleConfiguration swaggerBundleConfiguration = new SwaggerBundleConfiguration();
+        swaggerBundleConfiguration.setResourcePackage(VerkeersDrukteResource.class.getPackage().getName());
+        bootstrap.addBundle(new TrafficSwaggerBundle(swaggerBundleConfiguration));
     }
 
     @Override
@@ -46,7 +53,7 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
     }
 
     private void addHeaders(ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
-        headers.forEach((header,value) -> responseContext.getHeaders().add(header, value));
+        headers.forEach((header, value) -> responseContext.getHeaders().add(header, value));
     }
 
     public static void main(String[] args) throws Exception {
@@ -61,6 +68,19 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
 
         VerkeersDrukteApp app = new VerkeersDrukteApp();
         app.run("server", CONFIG_FILE);
+    }
+
+    private static final class TrafficSwaggerBundle extends SwaggerBundle<Configuration> {
+        private final SwaggerBundleConfiguration swaggerBundleConfiguration;
+
+        TrafficSwaggerBundle(SwaggerBundleConfiguration configuration) {
+            this.swaggerBundleConfiguration = configuration;
+        }
+
+        @Override
+        protected SwaggerBundleConfiguration getSwaggerBundleConfiguration(Configuration configuration) {
+            return swaggerBundleConfiguration;
+        }
     }
 
 }

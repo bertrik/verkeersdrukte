@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URI;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -32,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Path(VerkeersDrukteResource.TRAFFIC_PATH)
 @Produces(MediaType.APPLICATION_JSON)
-public final class VerkeersDrukteResource {
+public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
     private static final Logger LOG = LoggerFactory.getLogger(VerkeersDrukteResource.class);
 
     static final String TRAFFIC_PATH = "/traffic";
@@ -52,6 +53,14 @@ public final class VerkeersDrukteResource {
         mapper.findAndRegisterModules();
     }
 
+    @Override
+    @GET
+    @Path("/")
+    public void redirectSwagger() {
+        throw new RedirectionException(301, URI.create("/swagger"));
+    }
+
+    @Override
     @GET
     @Path(STATIC_PATH)
     public FeatureCollection getStatic() {
@@ -81,6 +90,7 @@ public final class VerkeersDrukteResource {
         return feature;
     }
 
+    @Override
     @GET
     @Path(STATIC_PATH + "/{location}")
     public Optional<FeatureCollection.Feature> getStatic(@PathParam("location") String location) {
@@ -91,6 +101,7 @@ public final class VerkeersDrukteResource {
         return Optional.ofNullable(feature);
     }
 
+    @Override
     @GET
     @Path(DYNAMIC_PATH + "/{location}")
     @CacheControl(maxAge = 1, maxAgeUnit = TimeUnit.MINUTES)
@@ -103,6 +114,7 @@ public final class VerkeersDrukteResource {
         return Optional.of(new MeasurementResult(aggregateMeasurement));
     }
 
+    @Override
     @GET
     @Path(DYNAMIC_PATH + "/{location}/events")
     @Produces(MediaType.SERVER_SENT_EVENTS)
