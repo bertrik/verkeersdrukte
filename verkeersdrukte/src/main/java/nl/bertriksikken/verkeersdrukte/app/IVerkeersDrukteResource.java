@@ -12,19 +12,22 @@ import jakarta.ws.rs.sse.Sse;
 import jakarta.ws.rs.sse.SseEventSink;
 import nl.bertriksikken.geojson.FeatureCollection;
 
-import java.net.URISyntaxException;
 import java.util.Optional;
 
 @OpenAPIDefinition(
-        info = @Info(
-                title = "Verkeersdrukte",
-                description = "Provides near real-time speed/intensity data for motorways in the Netherlands",
-                contact = @Contact(name = "Bertrik Sikken", email = "bertrik@gmail.com")),
+    info = @Info(
+        title = "Verkeersdrukte",
+        description = "Provides near real-time speed/intensity traffic data for motorways in the Netherlands,"
+                    + " based on open data from Nationaal Dataportaal Wegverkeer ( https://opendata.ndw.nu/ )",
+        contact = @Contact(name = "Bertrik Sikken", email = "bertrik@gmail.com")),
         servers = {@Server(url = "https://stofradar.nl"), @Server(url = "http://stofradar.nl:9002")},
-        tags = {@Tag(name = "static"), @Tag(name = "dynamic")})
+    tags = {
+        @Tag(name = "static", description = "location data"),
+        @Tag(name = "dynamic", description = "traffic data, intensity (vehicles/hour) and speed (km/hour)")
+    })
 public interface IVerkeersDrukteResource {
     @Operation(hidden = true)
-    void redirectSwagger() throws URISyntaxException;
+    void redirectSwagger();
 
     @Operation(summary = "Get GeoJSON containing all locations")
     @Tag(name = "static")
