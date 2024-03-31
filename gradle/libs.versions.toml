@@ -23,8 +23,6 @@ jdbf = { module = "com.github.spyhunter99:jdbf", version = "2.2.4" }
 
 junit = { module = "junit:junit", version = "4.13.2" }
 
-swagger-annotations = { module = "io.swagger:swagger-annotations", version = "1.6.14" }
-
 [bundles]
 jackson = ["jackson-bind", "jackson-yaml", "jackson-xml", "jackson-jsr310", "jackson-jdk8"]
 retrofit = ["retrofit", "retrofit-jackson", "retrofit-scalars"]
