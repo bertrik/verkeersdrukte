@@ -45,6 +45,8 @@ public final class ShapeFile {
         List<ShapeProperties> propertiesList = new ArrayList<>();
         try (DbfReader reader = new DbfReader(stream)) {
             DbfMetadata meta = reader.getMetadata();
+            LOG.info("DBF has update date: {}", meta.getUpdateDate());
+
             DbfRecord record;
             while ((record = reader.read()) != null) {
                 ShapeProperties properties = new ShapeProperties();
