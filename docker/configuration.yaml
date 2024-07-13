@@ -5,6 +5,10 @@ ndw:
 traffic:
   timeZone: "Europe/Amsterdam"
   baseUrl: "http://stofradar.nl:9002"
+  expiryDurationMinutes: 1440
+headers:
+  Access-Control-Allow-Origin: "*"
+  X-Accel-Buffering: "no"
 logging: !<default>
   level: "INFO"
   loggers: {}
@@ -13,6 +17,7 @@ logging: !<default>
       logFormat: "%d{yyyy-MM-dd} | %d{HH:mm:ss.SSS} | %-15.15thread | %5p | %-25.25logger{25} | %m%n"
       target: "STDOUT"
 server: !<default>
+  adminConnectors: []
   applicationConnectors:
     - type: http
       port: 9002
