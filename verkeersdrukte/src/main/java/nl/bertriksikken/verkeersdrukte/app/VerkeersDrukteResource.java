@@ -139,7 +139,7 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
                 if (measurement != null) {
                     String id = String.valueOf(measurement.dateTime.getEpochSecond() / 60);
                     String json = mapper.writeValueAsString(new MeasurementResult(measurement));
-                    OutboundSseEvent event = sse.newEventBuilder().id(id).name("measurement").data(json).build();
+                    OutboundSseEvent event = sse.newEventBuilder().id(id).data(json).build();
                     sseEventSink.send(event);
                 }
             }
