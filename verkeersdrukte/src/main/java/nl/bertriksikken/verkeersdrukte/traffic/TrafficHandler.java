@@ -72,14 +72,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
 
     @Override
     public void stop() {
-        try {
-            executor.shutdownNow();
-            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
-                LOG.warn("Executor did not terminate");
-            }
-        } catch (InterruptedException e) {
-            LOG.warn("Error stopping executor", e);
-        }
+        executor.shutdownNow();
     }
 
     private void downloadTrafficSpeed() {
