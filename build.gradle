@@ -1,6 +1,7 @@
 plugins {
-    alias libs.plugins.versions
     alias libs.plugins.dependencycheck
+    alias libs.plugins.errorprone
+    alias libs.plugins.versions
 }
 
 def isNonStable = { String version ->
@@ -17,7 +18,8 @@ subprojects {
     apply plugin: "java"
     apply plugin: "eclipse"
     apply plugin: 'com.github.ben-manes.versions'
-    
+    apply plugin: 'net.ltgt.errorprone'
+
     java {
         targetCompatibility = JavaVersion.VERSION_17
         sourceCompatibility = JavaVersion.VERSION_17
@@ -36,6 +38,9 @@ subprojects {
 
     // Standard libraries added to all projects
     dependencies {
+        annotationProcessor libs.errorprone.annotationprocessor
+
+        testAnnotationProcessor libs.errorprone.annotationprocessor
         testImplementation libs.junit
     }
 }

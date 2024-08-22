@@ -102,7 +102,7 @@ public final class ShapeFile {
         bb.order(ByteOrder.BIG_ENDIAN);
         int index = 0;
         while (bb.position() < fileLength) {
-            int recordNr = bb.getInt();
+            int unusedRecordNr = bb.getInt();
             int recordLength = 2 * bb.getInt();
             byte[] recordData = new byte[recordLength];
             bb.get(recordData);

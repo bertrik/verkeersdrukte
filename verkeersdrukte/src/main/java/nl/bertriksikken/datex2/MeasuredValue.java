@@ -1,8 +1,11 @@
 package nl.bertriksikken.datex2;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
@@ -59,7 +62,7 @@ public final class MeasuredValue {
     }
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
-    @JsonSubTypes({@Type(value = TrafficFlow.class, name = TrafficFlow.TYPE), @Type(value = TrafficSpeed.class, name = TrafficSpeed.TYPE)})
+    @JsonSubTypes({@JsonSubTypes.Type(value = TrafficFlow.class, name = TrafficFlow.TYPE), @JsonSubTypes.Type(value = TrafficSpeed.class, name = TrafficSpeed.TYPE)})
     public static abstract class BasicData {
         @JacksonXmlProperty(localName = "type", isAttribute = true)
         public final String type;

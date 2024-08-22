@@ -2,14 +2,15 @@ package nl.bertriksikken.datex2;
 
 import org.xml.sax.Attributes;
 
-import java.util.Stack;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
  * Collects element data as part of an XML SAX parser.
  */
 public final class SaxCollector {
 
-    private final Stack<String> stack = new Stack<>();
+    private final Deque<String> stack = new ArrayDeque<>();
     private final StringBuilder xml = new StringBuilder();
 
     public void resetElement() {
@@ -17,7 +18,7 @@ public final class SaxCollector {
     }
 
     public String updatePath(String qName) {
-        stack.push(qName);
+        stack.addLast(qName);
         return getPath();
     }
 
@@ -40,7 +41,7 @@ public final class SaxCollector {
     public String appendEnd(String qName) {
         String path = getPath();
         xml.append("</").append(qName).append(">");
-        stack.pop();
+        stack.removeLast();
         return path;
     }
 

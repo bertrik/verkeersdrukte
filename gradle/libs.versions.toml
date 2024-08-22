@@ -4,15 +4,17 @@ retrofit = "2.11.0"
 dropwizard = "4.0.7"
 
 [libraries]
-jackson-bind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref= "jackson" }
+errorprone_annotationprocessor = "com.google.errorprone:error_prone_core:2.30.0"
+
+jackson-bind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jackson-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson" }
 jackson-xml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-xml", version.ref = "jackson" }
 jackson-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
 jackson-jdk8 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jdk8", version.ref = "jackson" }
 
-retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref= "retrofit" }
-retrofit-jackson = { module = "com.squareup.retrofit2:converter-jackson", version.ref= "retrofit" }
-retrofit-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref= "retrofit" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+retrofit-jackson = { module = "com.squareup.retrofit2:converter-jackson", version.ref = "retrofit" }
+retrofit-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "retrofit" }
 
 dropwizard-assets = { module = "io.dropwizard:dropwizard-assets", version.ref = "dropwizard" }
 dropwizard-core = { module = "io.dropwizard:dropwizard-core", version.ref = "dropwizard" }
@@ -28,6 +30,6 @@ jackson = ["jackson-bind", "jackson-yaml", "jackson-xml", "jackson-jsr310", "jac
 retrofit = ["retrofit", "retrofit-jackson", "retrofit-scalars"]
 
 [plugins]
-versions = { id = "com.github.ben-manes.versions", version = "0.51.0" }
 dependencycheck = "org.owasp.dependencycheck:8.4.3"
-
+errorprone = "net.ltgt.errorprone:4.0.1"
+versions = { id = "com.github.ben-manes.versions", version = "0.51.0" }

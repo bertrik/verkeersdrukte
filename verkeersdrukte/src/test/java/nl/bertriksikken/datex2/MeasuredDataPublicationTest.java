@@ -1,9 +1,9 @@
 package nl.bertriksikken.datex2;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +21,7 @@ public final class MeasuredDataPublicationTest {
             LOG.info("Start parsing...");
             measuredDataPublication = MeasuredDataPublication.parse(gzis);
         }
+        Assert.assertFalse(measuredDataPublication.getSiteMeasurementsList().isEmpty());
         LOG.info("Got {} elements", measuredDataPublication.getSiteMeasurementsList().size());
     }
 

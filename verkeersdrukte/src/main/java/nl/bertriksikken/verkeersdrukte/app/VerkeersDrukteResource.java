@@ -5,7 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dropwizard.jersey.caching.CacheControl;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.RedirectionException;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.sse.OutboundSseEvent;
@@ -180,6 +185,12 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
             this.flow = Double.isFinite(measurement.flow) ? Math.round(measurement.flow) : null;
             this.speed = Double.isFinite(measurement.speed) ? BigDecimal.valueOf(measurement.speed).setScale(1, RoundingMode.HALF_UP) : null;
         }
+
+        @Override
+        public String toString() {
+            return String.format(Locale.ROOT, "{datetime=%s,flow=%d,speed=%s}", dateTime, flow, speed);
+        }
+
     }
 
 }
