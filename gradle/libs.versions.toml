@@ -1,7 +1,7 @@
 [versions]
 jackson = "2.17.2"
 retrofit = "2.11.0"
-dropwizard = "4.0.7"
+dropwizard = "4.0.8"
 
 [libraries]
 errorprone_annotationprocessor = "com.google.errorprone:error_prone_core:2.30.0"
