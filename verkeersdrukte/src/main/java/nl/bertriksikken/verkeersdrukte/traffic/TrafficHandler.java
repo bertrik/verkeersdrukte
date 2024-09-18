@@ -6,9 +6,6 @@ import nl.bertriksikken.datex2.MeasuredDataPublication;
 import nl.bertriksikken.datex2.MeasuredValue;
 import nl.bertriksikken.datex2.SiteMeasurements;
 import nl.bertriksikken.geojson.FeatureCollection;
-import nl.bertriksikken.shapefile.EShapeType;
-import nl.bertriksikken.shapefile.ShapeFile;
-import nl.bertriksikken.shapefile.ShapeRecord;
 import nl.bertriksikken.verkeersdrukte.app.VerkeersDrukteAppConfig;
 import nl.bertriksikken.verkeersdrukte.ndw.FileResponse;
 import nl.bertriksikken.verkeersdrukte.ndw.NdwClient;
@@ -17,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -41,28 +37,28 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private final NdwClient ndwClient;
     private final MeasurementCache measurementCache;
+    private final ShapeFileDownloader shapeFileDownloader;
     private FeatureCollection shapeFile;
 
     public TrafficHandler(VerkeersDrukteAppConfig config) {
         ndwClient = NdwClient.create(config.getNdwConfig());
         measurementCache = new MeasurementCache(config.getTrafficConfig().getExpiryDuration());
+        shapeFileDownloader = new ShapeFileDownloader(config.getTrafficConfig().getShapeFileFolder(), ndwClient);
     }
 
     @Override
-    public void start() throws IOException {
-        // read the shape file
-        LOG.info("Reading shape file ...");
-        InputStream shpStream = getClass().getClassLoader().getResourceAsStream("shapefile/Telpunten_WGS84.shp");
-        InputStream dbfStream = getClass().getClassLoader().getResourceAsStream("shapefile/Telpunten_WGS84.dbf");
-        shapeFile = readShapeFile(shpStream, dbfStream);
+    public void start() {
+        // schedule shape file download
+        LOG.info("Schedule shape file download ...");
+        schedule(this::downloadShapeFile, Duration.ZERO);
 
         // schedule regular fetches, starting immediately
-        LOG.info("Schedule download ...");
+        LOG.info("Schedule traffic speed download ...");
         schedule(this::downloadTrafficSpeed, Duration.ZERO);
     }
 
     @SuppressWarnings("FutureReturnValueIgnored")
-    private void schedule(Runnable action, Duration interval) {
+    private void schedule(Runnable action, Duration delay) {
         Runnable runnable = () -> {
             try {
                 action.run();
@@ -70,7 +66,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
                 LOG.warn("Caught throwable in scheduled task", e);
             }
         };
-        executor.schedule(runnable, interval.toMillis(), TimeUnit.MILLISECONDS);
+        executor.schedule(runnable, delay.toMillis(), TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -101,6 +97,19 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         schedule(this::downloadTrafficSpeed, interval);
 
         notifyClients();
+    }
+
+    private void downloadShapeFile() {
+        try {
+            LOG.info("Downloading shapefile ...");
+            if (shapeFileDownloader.download()) {
+                shapeFile = shapeFileDownloader.getFeatureCollection();
+            }
+        } catch (IOException e) {
+            LOG.warn("Shapefile download failed: {}", e.getMessage());
+        }
+        // reschedule
+        schedule(this::downloadShapeFile, Duration.ofDays(1));
     }
 
     private void decode(ByteArrayInputStream inputStream) throws IOException {
@@ -198,18 +207,4 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         List.copyOf(subscriptions.values()).forEach(INotifyData::notifyUpdate);
     }
 
-    private FeatureCollection readShapeFile(InputStream shpStream, InputStream dbfStream) throws IOException {
-        ShapeFile shapeFile = ShapeFile.read(shpStream, dbfStream);
-        FeatureCollection collection = new FeatureCollection();
-        for (ShapeRecord record : shapeFile.getRecords()) {
-            if (record.getType() == EShapeType.Point) {
-                ShapeRecord.Point point = (ShapeRecord.Point) record;
-                FeatureCollection.GeoJsonGeometry geometry = new FeatureCollection.PointGeometry(point.y, point.x);
-                FeatureCollection.Feature feature = new FeatureCollection.Feature(geometry);
-                record.getProperties().forEach(feature::addProperty);
-                collection.add(feature);
-            }
-        }
-        return collection;
-    }
 }

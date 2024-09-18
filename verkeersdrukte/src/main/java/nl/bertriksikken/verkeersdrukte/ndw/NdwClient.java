@@ -5,6 +5,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.ResponseBody;
 import org.eclipse.jetty.http.HttpHeader;
+import org.glassfish.jersey.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Response;
@@ -12,6 +13,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Objects;
 
 public final class NdwClient {
@@ -41,12 +43,22 @@ public final class NdwClient {
     }
 
     public FileResponse getTrafficSpeed() throws IOException {
-        Response<ResponseBody> response = restApi.downloadFile(INdwApi.TRAFFIC_SPEED_XML_GZ).execute();
+        Map<String, String> headers = Map.of(HttpHeaders.ACCEPT_ENCODING, "gzip");
+        return getFile(INdwApi.TRAFFIC_SPEED_XML_GZ, headers);
+    }
+
+    public FileResponse getShapeFile(String etag) throws IOException {
+        Map<String, String> headers = Map.of(HttpHeaders.IF_NONE_MATCH, etag);
+        return getFile(INdwApi.TRAFFIC_SPEED_SHAPEFILE, headers);
+    }
+
+    FileResponse getFile(String name, Map<String, String> headers) throws IOException {
+        Response<ResponseBody> response = restApi.downloadFile(name, headers).execute();
         if (response.isSuccessful()) {
-            return FileResponse.create(response.body().bytes(), response.headers().get("Last-Modified"));
+            return FileResponse.create(response.code(), response.headers().toMultimap(), response.body().bytes());
         } else {
-            LOG.warn("getTrafficSpeed failed, code {}, message {}", response.code(), response.message());
-            return FileResponse.empty();
+            LOG.warn("getFile('{}') failed, code {}: '{}'", name, response.code(), response.message());
+            return FileResponse.create(response.code(), response.headers().toMultimap(), new byte[0]);
         }
     }
 }
