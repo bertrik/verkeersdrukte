@@ -38,7 +38,8 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private final NdwClient ndwClient;
     private final MeasurementCache measurementCache;
     private final ShapeFileDownloader shapeFileDownloader;
-    private FeatureCollection shapeFile;
+
+    private FeatureCollection shapeFile = new FeatureCollection();
 
     public TrafficHandler(VerkeersDrukteAppConfig config) {
         ndwClient = NdwClient.create(config.getNdwConfig());
