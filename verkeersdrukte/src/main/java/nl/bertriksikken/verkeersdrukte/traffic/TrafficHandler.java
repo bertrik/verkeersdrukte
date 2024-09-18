@@ -1,7 +1,5 @@
 package nl.bertriksikken.verkeersdrukte.traffic;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.util.concurrent.Runnables;
 import io.dropwizard.lifecycle.Managed;
 import nl.bertriksikken.datex2.MeasuredDataPublication;
@@ -41,13 +39,11 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private final Map<String, INotifyData> subscriptions = new ConcurrentHashMap<>();
 
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-    private final ObjectMapper xmlMapper = new XmlMapper();
     private final NdwClient ndwClient;
     private final MeasurementCache measurementCache;
     private FeatureCollection shapeFile;
 
     public TrafficHandler(VerkeersDrukteAppConfig config) {
-        xmlMapper.findAndRegisterModules();
         ndwClient = NdwClient.create(config.getNdwConfig());
         measurementCache = new MeasurementCache(config.getTrafficConfig().getExpiryDuration());
     }
