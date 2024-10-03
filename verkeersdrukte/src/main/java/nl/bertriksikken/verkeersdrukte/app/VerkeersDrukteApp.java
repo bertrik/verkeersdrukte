@@ -32,10 +32,7 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
     public void initialize(Bootstrap<VerkeersDrukteAppConfig> bootstrap) {
         bootstrap.getObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
         bootstrap.addBundle(new AssetsBundle("/assets/verkeersdrukte.png", "/favicon.ico"));
-
-        SwaggerBundleConfiguration swaggerBundleConfiguration = new SwaggerBundleConfiguration();
-        swaggerBundleConfiguration.setResourcePackage(VerkeersDrukteResource.class.getPackage().getName());
-        bootstrap.addBundle(new TrafficSwaggerBundle(swaggerBundleConfiguration));
+        bootstrap.addBundle(new TrafficSwaggerBundle(VerkeersDrukteResource.class.getPackage().getName()));
     }
 
     @Override
@@ -71,15 +68,15 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
     }
 
     private static final class TrafficSwaggerBundle extends SwaggerBundle<Configuration> {
-        private final SwaggerBundleConfiguration swaggerBundleConfiguration;
+        private final SwaggerBundleConfiguration configuration = new SwaggerBundleConfiguration();
 
-        TrafficSwaggerBundle(SwaggerBundleConfiguration configuration) {
-            this.swaggerBundleConfiguration = configuration;
+        TrafficSwaggerBundle(String resourcePackage) {
+            this.configuration.setResourcePackage(resourcePackage);
         }
 
         @Override
         protected SwaggerBundleConfiguration getSwaggerBundleConfiguration(Configuration configuration) {
-            return swaggerBundleConfiguration;
+            return this.configuration;
         }
     }
 
