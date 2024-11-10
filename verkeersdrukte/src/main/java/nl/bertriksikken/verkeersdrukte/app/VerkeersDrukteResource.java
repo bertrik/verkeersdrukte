@@ -142,7 +142,7 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
             while (!sseEventSink.isClosed()) {
                 AggregateMeasurement measurement = queue.poll(1, TimeUnit.SECONDS);
                 if (measurement != null) {
-                    String id = String.valueOf(measurement.dateTime.getEpochSecond() / 60);
+                    String id = String.valueOf(measurement.dateTime().getEpochSecond() / 60);
                     String json = mapper.writeValueAsString(new MeasurementResult(measurement));
                     OutboundSseEvent event = sse.newEventBuilder().id(id).data(json).build();
                     sseEventSink.send(event);
@@ -180,10 +180,10 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
         private final BigDecimal speed;
 
         MeasurementResult(AggregateMeasurement measurement) {
-            OffsetDateTime dateTime = OffsetDateTime.ofInstant(measurement.dateTime, config.getTimeZone());
+            OffsetDateTime dateTime = OffsetDateTime.ofInstant(measurement.dateTime(), config.getTimeZone());
             this.dateTime = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(dateTime);
-            this.flow = Double.isFinite(measurement.flow) ? Math.round(measurement.flow) : null;
-            this.speed = Double.isFinite(measurement.speed) ? BigDecimal.valueOf(measurement.speed).setScale(1, RoundingMode.HALF_UP) : null;
+            this.flow = Double.isFinite(measurement.flow()) ? Math.round(measurement.flow()) : null;
+            this.speed = Double.isFinite(measurement.speed()) ? BigDecimal.valueOf(measurement.speed()).setScale(1, RoundingMode.HALF_UP) : null;
         }
 
         @Override

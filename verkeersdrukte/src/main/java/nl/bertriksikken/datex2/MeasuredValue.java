@@ -42,23 +42,7 @@ public final class MeasuredValue {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static final class MeasuredValueWrapper {
-        @JacksonXmlProperty(localName = "basicData")
-        public BasicData basicData;
-
-        MeasuredValueWrapper() {
-            // jackson constructor
-            this(null);
-        }
-
-        MeasuredValueWrapper(BasicData basicData) {
-            this.basicData = basicData;
-        }
-
-        @Override
-        public String toString() {
-            return basicData.toString();
-        }
+    public record MeasuredValueWrapper(@JacksonXmlProperty(localName = "basicData") BasicData basicData) {
     }
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")

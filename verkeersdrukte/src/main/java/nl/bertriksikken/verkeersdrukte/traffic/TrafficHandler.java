@@ -130,12 +130,13 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         List<MeasuredValue.TrafficFlow> flows = new ArrayList<>();
         List<MeasuredValue.TrafficSpeed> speeds = new ArrayList<>();
         for (MeasuredValue value : measurements.measuredValueList) {
-            switch (value.measuredValue.basicData.type) {
+            MeasuredValue.BasicData basicData = value.measuredValue.basicData();
+            switch (basicData.type) {
                 case MeasuredValue.TrafficFlow.TYPE:
-                    flows.add((MeasuredValue.TrafficFlow) value.measuredValue.basicData);
+                    flows.add((MeasuredValue.TrafficFlow) basicData);
                     break;
                 case MeasuredValue.TrafficSpeed.TYPE:
-                    speeds.add((MeasuredValue.TrafficSpeed) value.measuredValue.basicData);
+                    speeds.add((MeasuredValue.TrafficSpeed) basicData);
                     break;
                 default:
                     break;
