@@ -16,14 +16,16 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 
-public final class NdwClient {
+public final class NdwClient implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(NdwClient.class);
     private static final String USER_AGENT = "github.com/bertrik/verkeersdrukte";
 
+    private final OkHttpClient httpClient;
     private final INdwApi restApi;
 
-    NdwClient(INdwApi restApi) {
+    NdwClient(OkHttpClient httpClient, INdwApi restApi) {
+        this.httpClient = Objects.requireNonNull(httpClient);
         this.restApi = Objects.requireNonNull(restApi);
     }
 
@@ -34,7 +36,13 @@ public final class NdwClient {
         Retrofit retrofit = new Retrofit.Builder().baseUrl(config.getUrl())
                 .addConverterFactory(ScalarsConverterFactory.create()).client(client).build();
         INdwApi restApi = retrofit.create(INdwApi.class);
-        return new NdwClient(restApi);
+        return new NdwClient(client, restApi);
+    }
+
+    @Override
+    public void close() {
+        httpClient.dispatcher().executorService().shutdown();
+        httpClient.connectionPool().evictAll();
     }
 
     private static okhttp3.Response addUserAgent(Interceptor.Chain chain) throws IOException {

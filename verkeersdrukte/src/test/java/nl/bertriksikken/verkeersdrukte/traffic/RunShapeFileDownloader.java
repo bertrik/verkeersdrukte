@@ -13,15 +13,16 @@ public final class RunShapeFileDownloader {
 
     public static void main(String[] args) throws IOException {
         NdwConfig ndwConfig = new NdwConfig();
-        NdwClient ndwClient = NdwClient.create(ndwConfig);
-        File folder = new File("shapefile");
-        folder.mkdir();
-        ShapeFileDownloader downloader = new ShapeFileDownloader(folder, ndwClient);
-        if (downloader.download()) {
-            FeatureCollection featureCollection = downloader.getFeatureCollection();
-            try (FileOutputStream fos = new FileOutputStream("shapefile.json")) {
-                ObjectMapper mapper = new ObjectMapper();
-                mapper.writerWithDefaultPrettyPrinter().writeValue(fos, featureCollection);
+        try (NdwClient ndwClient = NdwClient.create(ndwConfig)) {
+            File folder = new File("shapefile");
+            folder.mkdir();
+            ShapeFileDownloader downloader = new ShapeFileDownloader(folder, ndwClient);
+            if (downloader.download()) {
+                FeatureCollection featureCollection = downloader.getFeatureCollection();
+                try (FileOutputStream fos = new FileOutputStream("shapefile.json")) {
+                    ObjectMapper mapper = new ObjectMapper();
+                    mapper.writerWithDefaultPrettyPrinter().writeValue(fos, featureCollection);
+                }
             }
         }
     }
