@@ -1,7 +1,7 @@
 package nl.bertriksikken.verkeersdrukte.ndw;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.List;
@@ -15,9 +15,9 @@ public final class FileResponseTest {
         Map<String, List<String>> headers = Map.of("Last-Modified", List.of("Tue, 3 Jun 2008 11:05:30 GMT"));
         FileResponse response = FileResponse.create(200, headers, contents);
 
-        Assert.assertArrayEquals(contents, response.getContents());
+        Assertions.assertArrayEquals(contents, response.getContents());
         Instant lastModified = response.getLastModified();
-        Assert.assertNotNull(lastModified);
+        Assertions.assertNotNull(lastModified);
     }
 
 }

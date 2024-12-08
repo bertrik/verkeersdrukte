@@ -35,12 +35,18 @@ subprojects {
         }
     }
 
+    test {
+        useJUnitPlatform()
+    }
+
     // Standard libraries added to all projects
     dependencies {
         errorprone(libs.errorprone.core)
         compileOnly libs.errorprone.annotations
 
-        testImplementation libs.junit
+        testImplementation libs.junit.jupiter.api
+        testRuntimeOnly libs.junit.jupiter.engine
+
     }
 }
 

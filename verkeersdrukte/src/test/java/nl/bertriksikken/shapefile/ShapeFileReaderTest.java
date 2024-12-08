@@ -3,7 +3,7 @@ package nl.bertriksikken.shapefile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import nl.bertriksikken.geojson.FeatureCollection;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;

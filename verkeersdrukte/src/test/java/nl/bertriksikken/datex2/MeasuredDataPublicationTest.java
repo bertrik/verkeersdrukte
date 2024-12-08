@@ -1,7 +1,7 @@
 package nl.bertriksikken.datex2;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +21,7 @@ public final class MeasuredDataPublicationTest {
             LOG.info("Start parsing...");
             measuredDataPublication = MeasuredDataPublication.parse(gzis);
         }
-        Assert.assertFalse(measuredDataPublication.getSiteMeasurementsList().isEmpty());
+        Assertions.assertFalse(measuredDataPublication.getSiteMeasurementsList().isEmpty());
         LOG.info("Got {} elements", measuredDataPublication.getSiteMeasurementsList().size());
     }
 
