@@ -1,6 +1,6 @@
 [versions]
 jackson = "2.18.2"
-junit = "5.8.1"
+junit = "5.11.3"
 retrofit = "2.11.0"
 dropwizard = "4.0.11"
 errorprone = "2.36.0"
@@ -26,8 +26,9 @@ dropwizard-swagger = { module = "com.smoketurner:dropwizard-swagger", version = 
 jersey-media-sse = { module = "org.glassfish.jersey.media:jersey-media-sse", version = "3.1.9" }
 jdbf = { module = "com.github.spyhunter99:jdbf", version = "2.2.4" }
 
-junit-jupiter-api =  { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
-junit-jupiter-engine =  { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 
 [bundles]
 jackson = ["jackson-bind", "jackson-yaml", "jackson-xml", "jackson-jsr310", "jackson-jdk8"]
