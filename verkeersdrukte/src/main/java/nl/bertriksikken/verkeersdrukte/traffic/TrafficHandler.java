@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -114,7 +115,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         schedule(this::downloadShapeFile, Duration.ofDays(1));
     }
 
-    private void decode(ByteArrayInputStream inputStream) throws IOException {
+    private void decode(InputStream inputStream) throws IOException {
         try (GZIPInputStream gzis = new GZIPInputStream(inputStream)) {
             MeasuredDataPublication publication = MeasuredDataPublication.parse(gzis);
             LOG.info("Got data for time {}", publication.getPublicationTime());
