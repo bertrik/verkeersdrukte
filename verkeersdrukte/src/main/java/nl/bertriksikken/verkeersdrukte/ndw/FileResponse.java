@@ -18,7 +18,7 @@ public final class FileResponse {
     FileResponse(int code, Map<String, List<String>> headers, byte[] contents) {
         this.code = code;
         this.headers = headers; // do not copy, original map has special case-insensitive properties
-        this.contents = contents.clone();
+        this.contents = contents;
     }
 
     public static FileResponse create(int code, Map<String, List<String>> headers, byte[] contents) {
