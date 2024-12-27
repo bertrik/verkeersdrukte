@@ -52,9 +52,9 @@ public final class ShapeFile {
                 ShapeProperties properties = new ShapeProperties();
                 for (DbfField field : meta.getFields()) {
                     String name = field.getName();
-                    String value = record.getString(name, StandardCharsets.UTF_8);
+                    String value = record.getString(name, StandardCharsets.US_ASCII);
                     if (value != null) {
-                        properties.put(name, value);
+                        properties.put(name, value.trim());
                     }
                 }
                 propertiesList.add(properties);
