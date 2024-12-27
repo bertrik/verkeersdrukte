@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dropwizard.jersey.caching.CacheControl;
+import jakarta.inject.Singleton;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.Path;
@@ -38,6 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Path(VerkeersDrukteResource.TRAFFIC_PATH)
 @Produces(MediaType.APPLICATION_JSON)
+@Singleton
 public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
     private static final Logger LOG = LoggerFactory.getLogger(VerkeersDrukteResource.class);
 
