@@ -2,7 +2,7 @@
 jackson = "2.18.2"
 junit = "5.11.4"
 retrofit = "2.11.0"
-dropwizard = "4.0.11"
+dropwizard = "4.0.12"
 errorprone = "2.36.0"
 
 [libraries]
@@ -37,4 +37,4 @@ retrofit = ["retrofit", "retrofit-jackson", "retrofit-scalars"]
 [plugins]
 dependencycheck = "org.owasp.dependencycheck:8.4.3"
 errorprone = "net.ltgt.errorprone:4.1.0"
-versions = { id = "com.github.ben-manes.versions", version = "0.51.0" }
+versions = { id = "com.github.ben-manes.versions", version = "0.52.0" }
