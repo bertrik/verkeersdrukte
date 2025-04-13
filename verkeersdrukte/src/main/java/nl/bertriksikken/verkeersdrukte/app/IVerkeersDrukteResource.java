@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.sse.Sse;
 import jakarta.ws.rs.sse.SseEventSink;
 import nl.bertriksikken.geojson.FeatureCollection;
@@ -27,7 +28,7 @@ import java.util.Optional;
         })
 public interface IVerkeersDrukteResource {
     @Operation(hidden = true)
-    void redirectSwagger();
+    Response getIndex();
 
     @Operation(summary = "Get GeoJSON containing all locations", tags = {"static"})
     FeatureCollection getStatic();
