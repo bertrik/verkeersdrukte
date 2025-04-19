@@ -2,14 +2,14 @@
 <html>
 
 <head>
-  <title>Verkeersdrukte</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <link rel="icon" type="image/x-icon" href="verkeersdrukte.png">
-  <style>
-    #map {
-      height: 95vh;
-    }
-  </style>
+    <title>Verkeersdrukte</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <link rel="icon" type="image/x-icon" href="verkeersdrukte.png">
+    <style>
+        #map {
+          height: 95vh;
+        }
+    </style>
 </head>
 
 <body>
@@ -17,67 +17,67 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </body>
 <script>
-  // Initialize the map
-  const map = L.map('map').setView([52.25, 5.64, 4.7], 8);
+    // Initialize the map
+    const map = L.map('map').setView([52.25, 5.64, 4.7], 8);
 
-  // Add a tile layer
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '(c) OpenStreetMap contributors'
-  }).addTo(map);
+    // Add a tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '(c) OpenStreetMap contributors'
+    }).addTo(map);
 
-  // Fetch GeoJSON data and add to the map
-  fetch('https://stofradar.nl/traffic/static')
-    .then(response => response.json())
-    .then(data => {
-      L.geoJSON(data, {
-        pointToLayer: createMarker,
-        onEachFeature: createPopup
-      }).addTo(map);
-    }).catch(error => console.error("Error loading GeoJSON:", error));
+    // Fetch GeoJSON data and add to the map
+    fetch('https://stofradar.nl/traffic/static')
+      .then(response => response.json())
+      .then(data => {
+        L.geoJSON(data, {
+          pointToLayer: createMarker,
+          onEachFeature: createPopup
+        }).addTo(map);
+      }).catch(error => console.error("Error loading GeoJSON:", error));
 
-  // creates the marker with gateway icon
-  function createMarker(feature, latlng) {
-    return L.circle(latlng, {
-      radius: 15,
-      color: 'blue',
-      fillColor: 'lightblue',
-      fillOpacity: 0.55
-    });
-  }
+    // creates the marker with gateway icon
+    function createMarker(feature, latlng) {
+      return L.circle(latlng, {
+        radius: 15,
+        color: feature.properties.wegtype == 'H' ? 'blue' : 'navy',
+        fillColor: 'lightblue',
+        fillOpacity: 0.55
+      });
+    }
 
-  function formatHeader(props) {
-    return `<strong>${props.dgl_loc}</strong><br>
-      ${props.naam} (${props.wegtype})<br>
-      <a href="${props.streetviewUrl}">Streetview</a>
-    `;
-  }
+    function formatHeader(props) {
+      return `<strong>${props.dgl_loc}</strong><br>
+        ${props.naam} (${props.wegtype})<br>
+        <a href="${props.streetviewUrl}">Streetview</a>
+      `;
+    }
 
-  // creates the popup with associated click behaviour
-  function createPopup(feature, layer) {
-    layer.on('click', () => {
-      const props = feature.properties;
-      const header = formatHeader(props);
-      const popup = L.popup().setLatLng(layer.getLatLng()).setContent(header + '<p>Loading...</p>').openOn(map);
-      url = props.dynamicDataUrl
-      fetch(url)
-        .then(response => response.json())
-        .then(dynamic => {
-          var content = `${dynamic.datetime}<br>`;
-          const flow = dynamic.flow / 60;
-          if (!isNaN(flow)) {
-            content += `${flow} autos/min<br>`;
-          }
-          const speed = dynamic.speed;
-          if (!isNaN(speed)) {
-            content += `${speed} km/uur`;
-          }
-          popup.setContent(header + '<p>' + content + '</p>').openOn(map);
-        }).catch(error => {
-          popup.setContent(header + `<p>Error fetching data: ${error} for ${url}</p>`).openOn(map);
-          console.error("Error fetching data:", error);
-        });
-    });
-  }
+    // creates the popup with associated click behaviour
+    function createPopup(feature, layer) {
+      layer.on('click', () => {
+        const props = feature.properties;
+        const header = formatHeader(props);
+        const popup = L.popup().setLatLng(layer.getLatLng()).setContent(header + '<p>Loading...</p>').openOn(map);
+        url = props.dynamicDataUrl
+        fetch(url)
+          .then(response => response.json())
+          .then(dynamic => {
+            var content = `${dynamic.datetime}<br>`;
+            const flow = dynamic.flow / 60;
+            if (!isNaN(flow)) {
+              content += `${flow} autos/min<br>`;
+            }
+            const speed = dynamic.speed;
+            if (!isNaN(speed)) {
+              content += `${speed} km/uur`;
+            }
+            popup.setContent(header + '<p>' + content + '</p>').openOn(map);
+          }).catch(error => {
+            popup.setContent(header + `<p>Error fetching data: ${error} for ${url}</p>`).openOn(map);
+            console.error("Error fetching data:", error);
+          });
+      });
+    }
 </script>
 
 </html>
