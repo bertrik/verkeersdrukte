@@ -123,13 +123,12 @@ public final class ShapeFile {
         ByteBuffer shapeBuffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN);
         EShapeType shapeType = EShapeType.fromValue(shapeBuffer.getInt());
         switch (shapeType) {
-            case Null:
-                break;
-            case Point:
+            case Null -> {
+            }
+            case Point -> {
                 return ShapeRecord.Point.parse(shapeBuffer);
-            default:
-                LOG.info("Unhandled shape type {}", shapeType);
-                break;
+            }
+            default -> LOG.info("Unhandled shape type {}", shapeType);
         }
         return null;
     }

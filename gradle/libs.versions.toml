@@ -1,9 +1,9 @@
 [versions]
 jackson = "2.18.3"
-junit = "5.12.1"
+junit = "5.12.2"
 retrofit = "2.11.0"
 dropwizard = "4.0.13"
-errorprone = "2.37.0"
+errorprone = "2.38.0"
 
 [libraries]
 errorprone_annotations = { module = "com.google.errorprone:error_prone_annotations", version.ref = "errorprone" }
