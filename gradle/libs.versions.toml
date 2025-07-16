@@ -1,9 +1,9 @@
 [versions]
 jackson = "2.19.1"
-junit = "5.13.1"
+junit = "5.13.3"
 retrofit = "3.0.0"
 dropwizard = "4.0.14"
-errorprone = "2.38.0"
+errorprone = "2.40.0"
 
 [libraries]
 errorprone_annotations = { module = "com.google.errorprone:error_prone_annotations", version.ref = "errorprone" }
@@ -36,5 +36,5 @@ retrofit = ["retrofit", "retrofit-jackson", "retrofit-scalars"]
 
 [plugins]
 dependencycheck = "org.owasp.dependencycheck:8.4.3"
-errorprone = "net.ltgt.errorprone:4.2.0"
+errorprone = "net.ltgt.errorprone:4.3.0"
 versions = { id = "com.github.ben-manes.versions", version = "0.52.0" }
