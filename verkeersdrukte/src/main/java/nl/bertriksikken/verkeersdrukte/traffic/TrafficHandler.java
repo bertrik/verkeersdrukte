@@ -56,7 +56,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         ndwDownloader.start();
 
         // schedule shape file download
-        LOG.info("Schedule shape file download ...");
+        LOG.info("Schedule shapefile download ...");
         schedule(this::downloadShapeFile, Duration.ZERO);
 
         // schedule regular fetches, starting immediately
@@ -110,12 +110,16 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
 
     private void downloadShapeFile() {
         try {
-            LOG.info("Downloading shapefile ...");
             if (shapeFileDownloader.download()) {
-                shapeFile = shapeFileDownloader.getFeatureCollection();
+                if (shapeFileDownloader.loadCache()) {
+                    shapeFile = shapeFileDownloader.getGeoJson();
+                    LOG.info("Parsed shapefile, {} features", shapeFile.getFeatures().size());
+                } else {
+                    LOG.warn("Parsing shapefile failed!");
+                }
             }
         } catch (IOException e) {
-            LOG.warn("Shapefile download failed: {}", e.getMessage());
+            LOG.warn("Shapefile download failed with exception: {}", e.getMessage());
         }
         // reschedule
         schedule(this::downloadShapeFile, Duration.ofDays(1));
@@ -126,13 +130,13 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         try (GZIPInputStream gzis = new GZIPInputStream(inputStream)) {
             publication.parse(gzis);
             for (SiteMeasurements measurements : publication.getSiteMeasurementsList()) {
-                AggregateMeasurement aggregateMeasurement = aggregateValues(measurements);
-                measurementCache.put(measurements.reference.id, aggregateMeasurement);
+                SiteMeasurement siteMeasurement = aggregateValues(measurements);
+                measurementCache.put(measurements.reference.id, siteMeasurement);
             }
         }
     }
 
-    private AggregateMeasurement aggregateValues(SiteMeasurements measurements) {
+    private SiteMeasurement aggregateValues(SiteMeasurements measurements) {
         Instant dateTime = measurements.getMeasurementTime();
         // group by type
         List<MeasuredValue.TrafficFlow> flows = new ArrayList<>();
@@ -146,28 +150,29 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
                 }
             }
         }
+        SiteMeasurement measurement = new SiteMeasurement(dateTime);
         if (flows.isEmpty() || (flows.size() != speeds.size())) {
             // cannot determine speed
-            return new AggregateMeasurement(dateTime, Double.NaN, Double.NaN);
+            return measurement;
         }
 
-        // aggregate flow as simple sum, speed as flow-weighted sum
-        double sumFlowSpeed = 0.0;
-        double sumFlow = 0.0;
         for (int i = 0; i < flows.size(); i++) {
             MeasuredValue.TrafficFlow flow = flows.get(i);
             MeasuredValue.TrafficSpeed speed = speeds.get(i);
             double flowValue = flow.vehicleFlow.dataError ? Double.NaN : flow.vehicleFlow.vehicleFlowRate;
-            double speedValue = speed.averageVehicleSpeed.dataError ? Double.NaN : speed.averageVehicleSpeed.speed;
-            sumFlowSpeed += flowValue * speedValue;
-            sumFlow += flowValue;
+            double speedValue;
+            if (flowValue > 0) {
+                speedValue = speed.averageVehicleSpeed.dataError ? Double.NaN : speed.averageVehicleSpeed.speed;
+            } else {
+                speedValue = Double.NaN;
+            }
+            measurement.addLaneMeasurement(flowValue, speedValue);
         }
-        double aggregateSpeed = sumFlowSpeed / sumFlow;
-        return new AggregateMeasurement(dateTime, sumFlow, aggregateSpeed);
+        return measurement;
     }
 
     @Override
-    public AggregateMeasurement getDynamicData(String location) {
+    public SiteMeasurement getDynamicData(String location) {
         return measurementCache.get(location);
     }
 

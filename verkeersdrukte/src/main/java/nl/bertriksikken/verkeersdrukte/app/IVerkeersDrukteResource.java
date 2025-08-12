@@ -37,7 +37,7 @@ public interface IVerkeersDrukteResource {
     Optional<FeatureCollection.Feature> getStatic(@PathParam("location") String location);
 
     @Operation(summary = "Get dynamic traffic data for a specific location", tags = {"dynamic"})
-    Optional<VerkeersDrukteResource.MeasurementResult> getDynamic(@PathParam("location") String location);
+    Optional<VerkeersDrukteResource.DynamicDataJson> getDynamic(@PathParam("location") String location);
 
     @Operation(summary = "Get event stream with dynamic traffic data for a specific location", tags = {"dynamic"})
     void getTrafficEvents(@Context Sse sse, @Context SseEventSink sseEventSink, @PathParam("location") String location);

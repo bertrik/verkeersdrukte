@@ -31,6 +31,27 @@ public final class ShapeFileDownloader {
         this.folder = Objects.requireNonNull(folder);
     }
 
+    /**
+     * Reads the shape file from local storage.
+     *
+     * @return if file was read successfully.
+     */
+    public boolean loadCache() {
+        LOG.info("Loading shapefile from ({})...", folder.getAbsolutePath());
+        try (FileInputStream shpStream = new FileInputStream(new File(folder, "Telpunten_WGS84.shp"))) {
+            try (FileInputStream dbfStream = new FileInputStream(new File(folder, "Telpunten_WGS84.dbf"))) {
+                shapeFile = ShapeFile.read(shpStream, dbfStream);
+                return true;
+            }
+        } catch (IOException e) {
+            LOG.warn("Loading shapefile failed");
+        }
+        return false;
+    }
+
+    /**
+     * Downloads the shape file from remote source and stores it locally.
+     */
     public boolean download() throws IOException {
         File file = downloader.fetchFile(INdwApi.TRAFFIC_SPEED_SHAPEFILE);
 
@@ -77,7 +98,7 @@ public final class ShapeFileDownloader {
         }
     }
 
-    public FeatureCollection getFeatureCollection() throws IOException {
+    public FeatureCollection getGeoJson() {
         FeatureCollection collection = new FeatureCollection();
         for (ShapeRecord record : shapeFile.getRecords()) {
             if (record.getType() == EShapeType.Point) {

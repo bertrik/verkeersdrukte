@@ -6,7 +6,7 @@ public interface ITrafficHandler {
 
     boolean isHealthy();
 
-    AggregateMeasurement getDynamicData(String location);
+    SiteMeasurement getDynamicData(String location);
 
     FeatureCollection getStaticData();
 
