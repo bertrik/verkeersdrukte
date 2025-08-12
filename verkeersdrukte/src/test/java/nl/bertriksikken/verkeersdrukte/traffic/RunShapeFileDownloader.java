@@ -18,7 +18,8 @@ public final class RunShapeFileDownloader {
             folder.mkdir();
             ShapeFileDownloader downloader = new ShapeFileDownloader(folder, ndwClient);
             if (downloader.download()) {
-                FeatureCollection featureCollection = downloader.getFeatureCollection();
+                downloader.loadCache();
+                FeatureCollection featureCollection = downloader.getGeoJson();
                 try (FileOutputStream fos = new FileOutputStream("shapefile.json")) {
                     ObjectMapper mapper = new ObjectMapper();
                     mapper.writerWithDefaultPrettyPrinter().writeValue(fos, featureCollection);

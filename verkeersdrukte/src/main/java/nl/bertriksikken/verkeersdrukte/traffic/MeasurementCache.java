@@ -7,17 +7,17 @@ import java.time.Duration;
 
 public final class MeasurementCache {
 
-    private final Cache<String, AggregateMeasurement> cache;
+    private final Cache<String, SiteMeasurement> cache;
 
     MeasurementCache(Duration expiryDuration) {
         cache = CacheBuilder.newBuilder().expireAfterWrite(expiryDuration).build();
     }
 
-    public void put(String location, AggregateMeasurement measurement) {
+    public void put(String location, SiteMeasurement measurement) {
         cache.put(location, measurement);
     }
 
-    public AggregateMeasurement get(String location) {
+    public SiteMeasurement get(String location) {
         return cache.getIfPresent(location);
     }
 

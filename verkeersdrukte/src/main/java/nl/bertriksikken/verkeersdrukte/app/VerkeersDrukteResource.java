@@ -18,8 +18,8 @@ import jakarta.ws.rs.sse.OutboundSseEvent;
 import jakarta.ws.rs.sse.Sse;
 import jakarta.ws.rs.sse.SseEventSink;
 import nl.bertriksikken.geojson.FeatureCollection;
-import nl.bertriksikken.verkeersdrukte.traffic.AggregateMeasurement;
 import nl.bertriksikken.verkeersdrukte.traffic.ITrafficHandler;
+import nl.bertriksikken.verkeersdrukte.traffic.SiteMeasurement;
 import nl.bertriksikken.verkeersdrukte.traffic.TrafficConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +29,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Queue;
@@ -41,12 +43,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Produces(MediaType.APPLICATION_JSON)
 @Singleton
 public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
-    private static final Logger LOG = LoggerFactory.getLogger(VerkeersDrukteResource.class);
-
     static final String TRAFFIC_PATH = "/traffic";
     static final String STATIC_PATH = "/static";
     static final String DYNAMIC_PATH = "/dynamic";
-
+    private static final Logger LOG = LoggerFactory.getLogger(VerkeersDrukteResource.class);
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private final ITrafficHandler handler;
@@ -114,13 +114,13 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
     @GET
     @Path(DYNAMIC_PATH + "/{location}")
     @CacheControl(maxAge = 1, maxAgeUnit = TimeUnit.MINUTES)
-    public Optional<MeasurementResult> getDynamic(@PathParam("location") String location) {
+    public Optional<DynamicDataJson> getDynamic(@PathParam("location") String location) {
         // return snapshot of most recent measurement for location
-        AggregateMeasurement aggregateMeasurement = handler.getDynamicData(location);
-        if (aggregateMeasurement == null) {
+        SiteMeasurement siteMeasurement = handler.getDynamicData(location);
+        if (siteMeasurement == null) {
             return Optional.empty();
         }
-        return Optional.of(new MeasurementResult(aggregateMeasurement));
+        return Optional.of(new DynamicDataJson(siteMeasurement));
     }
 
     @Override
@@ -136,7 +136,7 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
 
         //  get initial data
         String clientId = "client-" + atomicInteger.incrementAndGet();
-        BlockingQueue<AggregateMeasurement> queue = new ArrayBlockingQueue<>(3);
+        BlockingQueue<SiteMeasurement> queue = new ArrayBlockingQueue<>(3);
         eventCallback(clientId, queue, location);
 
         // subscribe to updates
@@ -144,10 +144,10 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
         handler.subscribe(clientId, () -> eventCallback(clientId, queue, location));
         try (sseEventSink) {
             while (!sseEventSink.isClosed()) {
-                AggregateMeasurement measurement = queue.poll(1, TimeUnit.SECONDS);
+                SiteMeasurement measurement = queue.poll(1, TimeUnit.SECONDS);
                 if (measurement != null) {
-                    String id = String.valueOf(measurement.dateTime().getEpochSecond() / 60);
-                    String json = mapper.writeValueAsString(new MeasurementResult(measurement));
+                    String id = String.valueOf(measurement.getDateTime().getEpochSecond() / 60);
+                    String json = mapper.writeValueAsString(new DynamicDataJson(measurement));
                     OutboundSseEvent event = sse.newEventBuilder().id(id).data(json).build();
                     sseEventSink.send(event);
                 }
@@ -160,8 +160,8 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
         }
     }
 
-    private void eventCallback(String clientId, Queue<AggregateMeasurement> queue, String location) {
-        AggregateMeasurement aggregateMeasurement = handler.getDynamicData(location);
+    private void eventCallback(String clientId, Queue<SiteMeasurement> queue, String location) {
+        SiteMeasurement aggregateMeasurement = handler.getDynamicData(location);
         if (aggregateMeasurement != null) {
             if (!queue.offer(aggregateMeasurement)) {
                 LOG.warn("Queue for client '{}' location '{}' got stuck", clientId, location);
@@ -169,32 +169,44 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
         }
     }
 
-    /**
-     * JSON serializable representation of {@link AggregateMeasurement}
-     */
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    final class MeasurementResult {
-        @JsonProperty("datetime")
-        private final String dateTime;
-
+    static final class FlowSpeedJson {
         @JsonProperty("flow")
         private final Long flow;
 
         @JsonProperty("speed")
         private final BigDecimal speed;
 
-        MeasurementResult(AggregateMeasurement measurement) {
-            OffsetDateTime dateTime = OffsetDateTime.ofInstant(measurement.dateTime(), config.getTimeZone());
-            this.dateTime = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(dateTime);
+        public FlowSpeedJson(SiteMeasurement.LaneMeasurement measurement) {
             this.flow = Double.isFinite(measurement.flow()) ? Math.round(measurement.flow()) : null;
             this.speed = Double.isFinite(measurement.speed()) ? BigDecimal.valueOf(measurement.speed()).setScale(1, RoundingMode.HALF_UP) : null;
         }
+    }
 
-        @Override
-        public String toString() {
-            return String.format(Locale.ROOT, "{datetime=%s,flow=%d,speed=%s}", dateTime, flow, speed);
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    final class DynamicDataJson {
+        @JsonProperty("datetime")
+        public String dateTime;
+
+        @JsonProperty("flow")
+        public Long flow;
+
+        @JsonProperty("speed")
+        public BigDecimal speed;
+
+        @JsonProperty("lanes")
+        List<FlowSpeedJson> lanes = new ArrayList<>();
+
+        DynamicDataJson(SiteMeasurement measurement) {
+            OffsetDateTime offsetDateTime = OffsetDateTime.ofInstant(measurement.getDateTime(), config.getTimeZone());
+            dateTime = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(offsetDateTime);
+
+            FlowSpeedJson aggregate = new FlowSpeedJson(measurement.aggregate());
+            flow = aggregate.flow;
+            speed = aggregate.speed;
+
+            measurement.getLanes().stream().map(FlowSpeedJson::new).forEach(lanes::add);
         }
-
     }
 
 }
