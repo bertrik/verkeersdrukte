@@ -60,6 +60,11 @@ public final class NdwClient implements AutoCloseable {
         return getFile(INdwApi.TRAFFIC_SPEED_SHAPEFILE, headers);
     }
 
+    public FileResponse getMeasurementSiteTable(String etag) throws IOException {
+        Map<String, String> headers = Map.of(HttpHeaders.IF_NONE_MATCH, etag);
+        return getFile(INdwApi.MEASUREMENT_SITE_TABLE, headers);
+    }
+
     FileResponse getFile(String name, Map<String, String> headers) throws IOException {
         Response<ResponseBody> response = restApi.downloadFile(name, headers).execute();
         if (response.isSuccessful()) {

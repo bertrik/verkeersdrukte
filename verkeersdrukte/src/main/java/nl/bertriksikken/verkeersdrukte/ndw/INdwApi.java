@@ -12,6 +12,7 @@ public interface INdwApi {
 
     String TRAFFIC_SPEED_XML_GZ = "trafficspeed.xml.gz";
     String TRAFFIC_SPEED_SHAPEFILE = "NDW_AVG_Meetlocaties_Shapefile.zip";
+    String MEASUREMENT_SITE_TABLE = "measurement_current.xml.gz";
 
     /**
      * Downloads a file from <a href="https://opendata.ndw.nu/">NDW open data portaal</a>

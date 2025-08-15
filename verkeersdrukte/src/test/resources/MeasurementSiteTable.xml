@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP:Envelope
+        xmlns:SOAP="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP:Body>
+        <d2LogicalModel
+                xmlns="http://datex2.eu/schema/2/2_0"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" modelBaseVersion="2">
+            <exchange>
+                <supplierIdentification>
+                    <country>nl</country>
+                    <nationalIdentifier>NLNDW</nationalIdentifier>
+                </supplierIdentification>
+            </exchange>
+            <payloadPublication
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="MeasurementSiteTablePublication" lang="nl">
+                <publicationTime>2025-08-12T11:00:00.000Z</publicationTime>
+                <publicationCreator>
+                    <country>nl</country>
+                    <nationalIdentifier>NLNDW</nationalIdentifier>
+                </publicationCreator>
+                <headerInformation>
+                    <confidentiality>noRestriction</confidentiality>
+                    <informationStatus>real</informationStatus>
+                </headerInformation>
+                <measurementSiteTable id="NDW01_MT" version="1647">
+                    <measurementSiteRecord id="PZH01_MST_0629_00" version="2">
+                        <measurementSiteRecordVersionTime>2025-07-08T12:09:56Z</measurementSiteRecordVersionTime>
+                        <computationMethod>arithmeticAverageOfSamplesInATimePeriod</computationMethod>
+                        <measurementEquipmentReference>0629_00</measurementEquipmentReference>
+                        <measurementEquipmentTypeUsed>
+                            <values>
+                                <value lang="nl">lus</value>
+                            </values>
+                        </measurementEquipmentTypeUsed>
+                        <measurementSiteName>
+                            <values>
+                                <value lang="nl">N457 hmp 4.75 Re</value>
+                            </values>
+                        </measurementSiteName>
+                        <measurementSiteNumberOfLanes>1</measurementSiteNumberOfLanes>
+                        <measurementSide>northWestBound</measurementSide>
+                        <measurementSpecificCharacteristics index="1">
+                            <measurementSpecificCharacteristics>
+                                <accuracy>95</accuracy>
+                                <period>60</period>
+                                <specificLane>lane1</specificLane>
+                                <specificMeasurementValueType>trafficFlow</specificMeasurementValueType>
+                                <specificVehicleCharacteristics>
+                                    <lengthCharacteristic>
+                                        <comparisonOperator>lessThan</comparisonOperator>
+                                        <vehicleLength>5.6</vehicleLength>
+                                    </lengthCharacteristic>
+                                </specificVehicleCharacteristics>
+                            </measurementSpecificCharacteristics>
+                        </measurementSpecificCharacteristics>
+                        <measurementSpecificCharacteristics index="2">
+                            <measurementSpecificCharacteristics>
+                                <accuracy>95</accuracy>
+                                <period>60</period>
+                                <specificLane>lane1</specificLane>
+                                <specificMeasurementValueType>trafficFlow</specificMeasurementValueType>
+                                <specificVehicleCharacteristics>
+                                    <lengthCharacteristic>
+                                        <comparisonOperator>greaterThanOrEqualTo</comparisonOperator>
+                                        <vehicleLength>5.6</vehicleLength>
+                                    </lengthCharacteristic>
+                                    <lengthCharacteristic>
+                                        <comparisonOperator>lessThanOrEqualTo</comparisonOperator>
+                                        <vehicleLength>12.2</vehicleLength>
+                                    </lengthCharacteristic>
+                                </specificVehicleCharacteristics>
+                            </measurementSpecificCharacteristics>
+                        </measurementSpecificCharacteristics>
+                        <measurementSpecificCharacteristics index="3">
+                            <measurementSpecificCharacteristics>
+                                <accuracy>95</accuracy>
+                                <period>60</period>
+                                <specificLane>lane1</specificLane>
+                                <specificMeasurementValueType>trafficFlow</specificMeasurementValueType>
+                                <specificVehicleCharacteristics>
+                                    <lengthCharacteristic>
+                                        <comparisonOperator>greaterThan</comparisonOperator>
+                                        <vehicleLength>12.2</vehicleLength>
+                                    </lengthCharacteristic>
+                                </specificVehicleCharacteristics>
+                            </measurementSpecificCharacteristics>
+                        </measurementSpecificCharacteristics>
+                        <measurementSpecificCharacteristics index="4">
+                            <measurementSpecificCharacteristics>
+                                <accuracy>95</accuracy>
+                                <period>60</period>
+                                <specificLane>lane1</specificLane>
+                                <specificMeasurementValueType>trafficFlow</specificMeasurementValueType>
+                                <specificVehicleCharacteristics>
+                                    <vehicleType>anyVehicle</vehicleType>
+                                </specificVehicleCharacteristics>
+                            </measurementSpecificCharacteristics>
+                        </measurementSpecificCharacteristics>
+                    </measurementSiteRecord>
+                </measurementSiteTable>
+            </payloadPublication>
+        </d2LogicalModel>
+    </SOAP:Body>
+</SOAP:Envelope>

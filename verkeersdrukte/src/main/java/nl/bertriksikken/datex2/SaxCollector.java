@@ -11,10 +11,10 @@ import java.util.Deque;
 public final class SaxCollector {
 
     private final Deque<String> stack = new ArrayDeque<>();
-    private final StringBuilder xml = new StringBuilder();
+    private final StringBuilder element = new StringBuilder();
 
     public void resetElement() {
-        xml.setLength(0);
+        element.setLength(0);
     }
 
     public String updatePath(String qName) {
@@ -27,26 +27,36 @@ public final class SaxCollector {
     }
 
     public void appendBegin(String qName, Attributes attributes) {
-        xml.append("<").append(qName);
+        element.append("<").append(qName);
         for (int i = 0; i < attributes.getLength(); i++) {
-            xml.append(" ").append(attributes.getQName(i)).append("=\"").append(attributes.getValue(i)).append("\"");
+            element.append(" ").append(attributes.getQName(i)).append("=\"").append(attributes.getValue(i)).append("\"");
         }
-        xml.append(">");
+        element.append(">");
     }
 
     public void appendData(char[] ch, int start, int length) {
-        xml.append(ch, start, length);
+        String text = new String(ch, start, length);
+        element.append(escapeXml(text));
     }
 
     public String appendEnd(String qName) {
         String path = getPath();
-        xml.append("</").append(qName).append(">");
+        element.append("</").append(qName).append(">");
         stack.removeLast();
         return path;
     }
 
     public String getElement() {
-        return xml.toString();
+        return element.toString();
+    }
+
+    private String escapeXml(String input) {
+        return input
+                .replace("&", "&amp;")   // must be first
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&apos;");
     }
 
 }
