@@ -47,9 +47,9 @@ public final class Datex2IntegrationTest {
         // load measurements
         LOG.info("Loading measurements ...");
         InputStream measurementStream = getClass().getResourceAsStream("/trafficspeed.xml.gz");
-        MeasuredDataPublication mdp;
+        MeasuredDataPublication mdp = new MeasuredDataPublication();
         try (GZIPInputStream gzis = new GZIPInputStream(measurementStream)) {
-            mdp = MeasuredDataPublication.parse(gzis);
+            mdp.parse(gzis);
         }
         int mstNotFound = 0;
         int indexNotFound = 0;

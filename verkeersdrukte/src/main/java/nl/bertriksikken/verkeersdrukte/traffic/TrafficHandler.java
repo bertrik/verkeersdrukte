@@ -122,9 +122,9 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     }
 
     private void decode(InputStream inputStream) throws IOException {
+        MeasuredDataPublication publication = new MeasuredDataPublication();
         try (GZIPInputStream gzis = new GZIPInputStream(inputStream)) {
-            MeasuredDataPublication publication = MeasuredDataPublication.parse(gzis);
-            LOG.info("Got data for time {}", publication.getPublicationTime());
+            publication.parse(gzis);
             for (SiteMeasurements measurements : publication.getSiteMeasurementsList()) {
                 AggregateMeasurement aggregateMeasurement = aggregateValues(measurements);
                 measurementCache.put(measurements.reference.id, aggregateMeasurement);
