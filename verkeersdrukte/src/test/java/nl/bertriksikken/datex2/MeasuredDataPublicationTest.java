@@ -16,10 +16,10 @@ public final class MeasuredDataPublicationTest {
     @Test
     public void test() throws IOException {
         InputStream is = getClass().getResourceAsStream("/trafficspeed.xml.gz");
-        MeasuredDataPublication measuredDataPublication;
+        MeasuredDataPublication measuredDataPublication = new MeasuredDataPublication();
         try (GZIPInputStream gzis = new GZIPInputStream(is)) {
             LOG.info("Start parsing...");
-            measuredDataPublication = MeasuredDataPublication.parse(gzis);
+            measuredDataPublication.parse(gzis);
         }
         Assertions.assertFalse(measuredDataPublication.getSiteMeasurementsList().isEmpty());
         LOG.info("Got {} elements", measuredDataPublication.getSiteMeasurementsList().size());
