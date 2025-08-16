@@ -4,16 +4,16 @@ import nl.bertriksikken.geojson.FeatureCollection;
 import nl.bertriksikken.shapefile.EShapeType;
 import nl.bertriksikken.shapefile.ShapeFile;
 import nl.bertriksikken.shapefile.ShapeRecord;
-import nl.bertriksikken.verkeersdrukte.ndw.FileResponse;
-import nl.bertriksikken.verkeersdrukte.ndw.NdwClient;
+import nl.bertriksikken.verkeersdrukte.ndw.INdwApi;
+import nl.bertriksikken.verkeersdrukte.ndw.NdwDownloader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -21,31 +21,23 @@ public final class ShapeFileDownloader {
 
     private static final Logger LOG = LoggerFactory.getLogger(ShapeFileDownloader.class);
 
+    private final NdwDownloader downloader;
     private final File folder;
-    private final NdwClient client;
 
-    private String etag = "";
     private ShapeFile shapeFile;
 
-    ShapeFileDownloader(File folder, NdwClient client) {
-        this.folder = folder;
-        this.client = client;
+    ShapeFileDownloader(File folder, NdwDownloader downloader) {
+        this.downloader = Objects.requireNonNull(downloader);
+        this.folder = Objects.requireNonNull(folder);
     }
 
     public boolean download() throws IOException {
-        FileResponse response = client.getShapeFile(etag);
-        if (response.getCode() != 200) {
-            LOG.info("Shapefile not downloaded, code {}", response.getCode());
-            return false;
-        }
-
-        // remember etag for next time
-        etag = response.getEtag();
+        File file = downloader.fetchFile(INdwApi.TRAFFIC_SPEED_SHAPEFILE);
 
         // unzip
         folder.mkdirs();
         deleteFiles(folder);
-        unzip(response.getContents(), folder);
+        unzip(file, folder);
 
         // read shape file
         try (FileInputStream shpStream = new FileInputStream(new File(folder, "Telpunten_WGS84.shp"))) {
@@ -63,9 +55,9 @@ public final class ShapeFileDownloader {
         }
     }
 
-    private void unzip(byte[] contents, File folder) throws IOException {
-        ByteArrayInputStream bais = new ByteArrayInputStream(contents);
-        try (ZipInputStream zis = new ZipInputStream(bais)) {
+    private void unzip(File zipFile, File folder) throws IOException {
+        try (FileInputStream fis = new FileInputStream(zipFile);
+             ZipInputStream zis = new ZipInputStream(fis)) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 String name = entry.getName();

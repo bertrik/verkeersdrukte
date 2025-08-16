@@ -28,7 +28,7 @@ public final class NdwDownloader implements AutoCloseable {
     private final YAMLMapper yamlMapper = new YAMLMapper();
     private CacheIndex cacheIndex = new CacheIndex();
 
-    NdwDownloader(NdwConfig config) {
+    public NdwDownloader(NdwConfig config) {
         this.cacheLocation = new File(config.getCacheLocation());
         this.client = NdwClient.create(config);
     }
@@ -42,7 +42,7 @@ public final class NdwDownloader implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         client.close();
     }
 
