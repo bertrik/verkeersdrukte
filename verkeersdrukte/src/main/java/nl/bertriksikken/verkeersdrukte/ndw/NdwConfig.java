@@ -16,11 +16,18 @@ public final class NdwConfig {
     @JsonProperty("timeout")
     int timeout = 30;
 
+    @JsonProperty("cacheLocation")
+    String cacheLocation = ".cache";
+
     public String getUrl() {
         return host;
     }
 
     public Duration getTimeout() {
         return Duration.ofSeconds(timeout);
+    }
+
+    public String getCacheLocation() {
+        return cacheLocation;
     }
 }
