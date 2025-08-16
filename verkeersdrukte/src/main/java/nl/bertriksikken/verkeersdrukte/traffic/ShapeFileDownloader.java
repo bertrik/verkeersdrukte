@@ -32,24 +32,6 @@ public final class ShapeFileDownloader {
     }
 
     /**
-     * Reads the shape file from local storage.
-     *
-     * @return if file was read successfully.
-     */
-    public boolean loadCache() {
-        LOG.info("Loading shapefile from ({})...", folder.getAbsolutePath());
-        try (FileInputStream shpStream = new FileInputStream(new File(folder, "Telpunten_WGS84.shp"))) {
-            try (FileInputStream dbfStream = new FileInputStream(new File(folder, "Telpunten_WGS84.dbf"))) {
-                shapeFile = ShapeFile.read(shpStream, dbfStream);
-                return true;
-            }
-        } catch (IOException e) {
-            LOG.warn("Loading shapefile failed");
-        }
-        return false;
-    }
-
-    /**
      * Downloads the shape file from remote source and stores it locally.
      */
     public boolean download() throws IOException {

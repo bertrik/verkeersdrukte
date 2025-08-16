@@ -19,7 +19,6 @@ public final class RunShapeFileDownloader {
             folder.mkdir();
             ShapeFileDownloader downloader = new ShapeFileDownloader(folder, ndwDownloader);
             if (downloader.download()) {
-                downloader.loadCache();
                 FeatureCollection featureCollection = downloader.getGeoJson();
                 try (FileOutputStream fos = new FileOutputStream("shapefile.json")) {
                     ObjectMapper mapper = new ObjectMapper();
