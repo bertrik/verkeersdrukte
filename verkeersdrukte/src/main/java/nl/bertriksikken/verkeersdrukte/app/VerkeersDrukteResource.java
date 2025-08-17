@@ -29,7 +29,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -169,6 +168,7 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
         }
     }
 
+    @SuppressWarnings("unused")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     static final class FlowSpeedJson {
         @JsonProperty("id")
@@ -187,19 +187,20 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
         }
     }
 
+    @SuppressWarnings("unused")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     final class DynamicDataJson {
         @JsonProperty("datetime")
-        public String dateTime;
+        private final String dateTime;
 
         @JsonProperty("flow")
-        public Long flow;
+        private final Long flow;
 
         @JsonProperty("speed")
-        public BigDecimal speed;
+        private final BigDecimal speed;
 
         @JsonProperty("lanes")
-        List<FlowSpeedJson> lanes = new ArrayList<>();
+        private final List<FlowSpeedJson> lanes;
 
         DynamicDataJson(SiteMeasurement measurement) {
             OffsetDateTime offsetDateTime = OffsetDateTime.ofInstant(measurement.getDateTime(), config.getTimeZone());
@@ -208,8 +209,7 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
             FlowSpeedJson aggregate = new FlowSpeedJson(measurement.aggregate());
             flow = aggregate.flow;
             speed = aggregate.speed;
-
-            measurement.getLanes().stream().map(FlowSpeedJson::new).forEach(lanes::add);
+            lanes = measurement.getLanes().stream().map(FlowSpeedJson::new).toList();
         }
     }
 
