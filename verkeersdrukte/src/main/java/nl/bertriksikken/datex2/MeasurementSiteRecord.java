@@ -3,6 +3,7 @@ package nl.bertriksikken.datex2;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.google.common.base.Strings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,31 +30,35 @@ public class MeasurementSiteRecord {
         return id;
     }
 
-    public List<MeasurementSpecificCharacteristics> getCharacteristics() {
-        return List.copyOf(characteristics);
-    }
-
     public void addCharacteristic(MeasurementSpecificCharacteristicsElement newCharacteristic) {
         int index = characteristics.size() + 1;
         characteristics.add(new MeasurementSpecificCharacteristics(index, newCharacteristic));
     }
 
-    public MeasurementSpecificCharacteristics findCharacteristic(int index) {
-        return characteristics.stream().filter(e -> e.index() == index).findFirst().orElse(null);
+    public MeasurementSpecificCharacteristicsElement findCharacteristic(int index) {
+        return characteristics.stream().filter(e -> e.index() == index)
+                .map(MeasurementSpecificCharacteristics::element).findFirst().orElse(null);
     }
+
+    record MeasurementSpecificCharacteristics(
+            @JacksonXmlProperty(localName = "index", isAttribute = true) int index,
+            @JacksonXmlProperty(localName = "measurementSpecificCharacteristics") MeasurementSpecificCharacteristicsElement element) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record MeasurementSpecificCharacteristicsElement(
+            @JacksonXmlProperty(localName = "specificLane") String specificLane,
+            @JacksonXmlProperty(localName = "specificMeasurementValueType") String specificMeasurementValueType,
+            @JacksonXmlProperty(localName = "specificVehicleCharacteristics") SpecificVehicleCharacteristics specificVehicleCharacteristics) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record SpecificVehicleCharacteristics(@JacksonXmlProperty(localName = "vehicleType") String vehicleType) {
+        public SpecificVehicleCharacteristics {
+            vehicleType = Strings.nullToEmpty(vehicleType);
+        }
+    }
+
 }
 
-record MeasurementSpecificCharacteristics(
-        @JacksonXmlProperty(localName = "index", isAttribute = true) int index,
-        @JacksonXmlProperty(localName = "measurementSpecificCharacteristics") MeasurementSpecificCharacteristicsElement element) {
-}
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-record MeasurementSpecificCharacteristicsElement(
-        @JacksonXmlProperty(localName = "specificLane") String specificLane,
-        @JacksonXmlProperty(localName = "specificMeasurementValueType") String specificMeasurementValueType,
-        @JacksonXmlProperty(localName = "specificVehicleCharacteristics") SpecificVehicleCharacteristics specificVehicleCharacteristics) {
-}
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-record SpecificVehicleCharacteristics(@JacksonXmlProperty(localName = "vehicleType") String vehicleType) { }

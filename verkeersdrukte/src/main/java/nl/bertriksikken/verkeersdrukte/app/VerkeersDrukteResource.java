@@ -171,6 +171,9 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     static final class FlowSpeedJson {
+        @JsonProperty("id")
+        private final String id;
+
         @JsonProperty("flow")
         private final Long flow;
 
@@ -178,6 +181,7 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
         private final BigDecimal speed;
 
         public FlowSpeedJson(SiteMeasurement.LaneMeasurement measurement) {
+            this.id = measurement.id();
             this.flow = Double.isFinite(measurement.flow()) ? Math.round(measurement.flow()) : null;
             this.speed = Double.isFinite(measurement.speed()) ? BigDecimal.valueOf(measurement.speed()).setScale(1, RoundingMode.HALF_UP) : null;
         }

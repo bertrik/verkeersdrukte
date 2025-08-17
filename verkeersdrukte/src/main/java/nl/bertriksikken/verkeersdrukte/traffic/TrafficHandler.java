@@ -1,26 +1,34 @@
 package nl.bertriksikken.verkeersdrukte.traffic;
 
+import com.google.common.base.Strings;
 import com.google.common.util.concurrent.Runnables;
 import io.dropwizard.lifecycle.Managed;
 import nl.bertriksikken.datex2.MeasuredDataPublication;
 import nl.bertriksikken.datex2.MeasuredValue;
+import nl.bertriksikken.datex2.MeasurementSiteRecord;
+import nl.bertriksikken.datex2.MeasurementSiteRecord.MeasurementSpecificCharacteristicsElement;
+import nl.bertriksikken.datex2.MeasurementSiteTable;
 import nl.bertriksikken.datex2.SiteMeasurements;
 import nl.bertriksikken.geojson.FeatureCollection;
 import nl.bertriksikken.verkeersdrukte.app.VerkeersDrukteAppConfig;
 import nl.bertriksikken.verkeersdrukte.ndw.FileResponse;
+import nl.bertriksikken.verkeersdrukte.ndw.INdwApi;
 import nl.bertriksikken.verkeersdrukte.ndw.NdwClient;
 import nl.bertriksikken.verkeersdrukte.ndw.NdwDownloader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -41,6 +49,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private final MeasurementCache measurementCache;
     private final NdwDownloader ndwDownloader;
     private final ShapeFileDownloader shapeFileDownloader;
+    private MeasurementSiteTable mst = new MeasurementSiteTable(Set.of());
 
     private FeatureCollection shapeFile = new FeatureCollection();
 
@@ -58,6 +67,10 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         // schedule shape file download
         LOG.info("Schedule shapefile download ...");
         schedule(this::downloadShapeFile, Duration.ZERO);
+
+        // schedule MST download
+        LOG.info("Schedule MST download...");
+        schedule(this::downloadMst, Duration.ZERO);
 
         // schedule regular fetches, starting immediately
         LOG.info("Schedule traffic speed download ...");
@@ -121,40 +134,82 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         schedule(this::downloadShapeFile, Duration.ofDays(1));
     }
 
+    private void downloadMst() {
+        LOG.info("Downloading MST...");
+        try {
+            File file = ndwDownloader.fetchFile(INdwApi.MEASUREMENT_SITE_TABLE);
+            if (file != null) {
+                try (FileInputStream fis = new FileInputStream(file);
+                     GZIPInputStream gzis = new GZIPInputStream(fis)) {
+                    LOG.info("Parsing MST...");
+                    Instant startTime = Instant.now();
+                    mst = new MeasurementSiteTable(shapeFileDownloader.getSiteIds());
+                    mst.parse(gzis);
+                    LOG.info("Parsed MST, {} entries, took {}",
+                            mst.getMeasurementSiteIds().size(), Duration.between(startTime, Instant.now()));
+                }
+            } else {
+                LOG.warn("MST not downloaded");
+            }
+        } catch (IOException e) {
+            LOG.warn("MST download failed: {}", e.getMessage());
+        }
+    }
+
     private void decode(InputStream inputStream) throws IOException {
         MeasuredDataPublication publication = new MeasuredDataPublication();
         try (GZIPInputStream gzis = new GZIPInputStream(inputStream)) {
             publication.parse(gzis);
             for (SiteMeasurements measurements : publication.getSiteMeasurementsList()) {
-                SiteMeasurement siteMeasurement = aggregateValues(measurements);
+                SiteMeasurement siteMeasurement = processSiteMeasurements(measurements);
                 measurementCache.put(measurements.reference.id, siteMeasurement);
             }
         }
     }
 
-    private SiteMeasurement aggregateValues(SiteMeasurements measurements) {
+    /**
+     * Processes NDW measurements, relating them to the MST,  finding the "anyVehicle" measurements per lane.
+     */
+    private SiteMeasurement processSiteMeasurements(SiteMeasurements measurements) {
         Instant dateTime = measurements.getMeasurementTime();
+        SiteMeasurement measurement = new SiteMeasurement(dateTime);
         // group by type
-        List<MeasuredValue.TrafficFlow> flows = new ArrayList<>();
-        List<MeasuredValue.TrafficSpeed> speeds = new ArrayList<>();
+        Map<String, MeasuredValue.TrafficFlow> flows = new HashMap<>();
+        Map<String, MeasuredValue.TrafficSpeed> speeds = new HashMap<>();
+        String siteId = measurements.reference.id;
+        MeasurementSiteRecord msr = mst.findMeasurementSiteRecord(siteId);
+        if (msr == null) {
+            return measurement;
+        }
         for (MeasuredValue value : measurements.measuredValueList) {
+            // check vehicle type from MST against "anyVehicle"
+            MeasurementSpecificCharacteristicsElement chars =
+                    msr.findCharacteristic(value.index);
+            if (chars == null) {
+                LOG.warn("MeasurementSpecificCharacteristics not found for site '{}', index '{}", siteId, value.index);
+                continue;
+            }
+            String vehicleType = Strings.nullToEmpty(chars.specificVehicleCharacteristics().vehicleType());
+            if (!vehicleType.equals("anyVehicle")) {
+                continue;
+            }
+            String lane = chars.specificLane();
             MeasuredValue.BasicData basicData = value.measuredValue.basicData();
             switch (basicData.type) {
-                case MeasuredValue.TrafficFlow.TYPE -> flows.add((MeasuredValue.TrafficFlow) basicData);
-                case MeasuredValue.TrafficSpeed.TYPE -> speeds.add((MeasuredValue.TrafficSpeed) basicData);
+                case MeasuredValue.TrafficFlow.TYPE -> flows.put(lane, (MeasuredValue.TrafficFlow) basicData);
+                case MeasuredValue.TrafficSpeed.TYPE -> speeds.put(lane, (MeasuredValue.TrafficSpeed) basicData);
                 default -> {
                 }
             }
         }
-        SiteMeasurement measurement = new SiteMeasurement(dateTime);
         if (flows.isEmpty() || (flows.size() != speeds.size())) {
             // cannot determine speed
             return measurement;
         }
 
-        for (int i = 0; i < flows.size(); i++) {
-            MeasuredValue.TrafficFlow flow = flows.get(i);
-            MeasuredValue.TrafficSpeed speed = speeds.get(i);
+        for (String lane : flows.keySet()) {
+            MeasuredValue.TrafficFlow flow = flows.get(lane);
+            MeasuredValue.TrafficSpeed speed = speeds.get(lane);
             double flowValue = flow.vehicleFlow.dataError ? Double.NaN : flow.vehicleFlow.vehicleFlowRate;
             double speedValue;
             if (flowValue > 0) {
@@ -162,7 +217,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
             } else {
                 speedValue = Double.NaN;
             }
-            measurement.addLaneMeasurement(flowValue, speedValue);
+            measurement.addLaneMeasurement(lane, flowValue, speedValue);
         }
         return measurement;
     }

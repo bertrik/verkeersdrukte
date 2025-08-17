@@ -1,13 +1,15 @@
 package nl.bertriksikken.datex2;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import nl.bertriksikken.datex2.MeasurementSiteRecord.MeasurementSpecificCharacteristicsElement;
+import nl.bertriksikken.datex2.MeasurementSiteRecord.SpecificVehicleCharacteristics;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class MeasurementSiteRecordTest {
 
@@ -18,10 +20,10 @@ public class MeasurementSiteRecordTest {
         InputStream is = getClass().getResourceAsStream("/MeasurementSiteRecord.xml");
         MeasurementSiteRecord record = XML_MAPPER.readValue(is, MeasurementSiteRecord.class);
         assertNotNull(record);
-        MeasurementSpecificCharacteristics characteristic = record.findCharacteristic(4);
-        assertEquals("lane1", characteristic.element().specificLane());
-        assertEquals("trafficFlow", characteristic.element().specificMeasurementValueType());
-        assertEquals("anyVehicle", characteristic.element().specificVehicleCharacteristics().vehicleType());
+        MeasurementSpecificCharacteristicsElement characteristic = record.findCharacteristic(4);
+        assertEquals("lane1", characteristic.specificLane());
+        assertEquals("trafficFlow", characteristic.specificMeasurementValueType());
+        assertEquals("anyVehicle", characteristic.specificVehicleCharacteristics().vehicleType());
     }
 
     @Test

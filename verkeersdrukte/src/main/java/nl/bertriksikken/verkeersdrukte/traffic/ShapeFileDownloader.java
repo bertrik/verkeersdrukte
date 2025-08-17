@@ -14,6 +14,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -92,6 +94,14 @@ public final class ShapeFileDownloader {
             }
         }
         return collection;
+    }
+
+    public Set<String> getSiteIds() {
+        return shapeFile.getRecords().stream().map(ShapeRecord::getProperties)
+                .map(p -> p.getOrDefault("dgl_loc", null))
+                .filter(String.class::isInstance)
+                .map(String.class::cast)
+                .collect(Collectors.toSet());
     }
 
     private boolean isTelpunt(File dir, String name) {

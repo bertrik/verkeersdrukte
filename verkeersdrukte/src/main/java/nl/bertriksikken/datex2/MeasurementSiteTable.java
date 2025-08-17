@@ -1,6 +1,7 @@
 package nl.bertriksikken.datex2;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.xml.XmlFactory;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.xml.sax.SAXException;
@@ -18,7 +19,7 @@ import java.util.Set;
 public final class MeasurementSiteTable {
     private static final SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
     private static final XMLInputFactory xmlInputFactory = XMLInputFactory.newFactory();
-    private final XmlMapper xmlMapper;
+    private final ObjectReader msrReader;
 
     private final Map<String, MeasurementSiteRecord> records = new LinkedHashMap<>();
     private final Set<String> siteIds;
@@ -30,7 +31,7 @@ public final class MeasurementSiteTable {
 
     public MeasurementSiteTable(Set<String> siteIds) {
         this.siteIds = Set.copyOf(siteIds);
-        xmlMapper = createXmlMapper();
+        msrReader = createXmlMapper().readerFor(MeasurementSiteRecord.class);
     }
 
     public void parse(InputStream inputStream) throws IOException {
@@ -45,7 +46,7 @@ public final class MeasurementSiteTable {
 
     private void processRecord(String s) {
         try {
-            MeasurementSiteRecord record = xmlMapper.readValue(s, MeasurementSiteRecord.class);
+            MeasurementSiteRecord record = msrReader.readValue(s);
             if (siteIds.isEmpty() || siteIds.contains(record.id())) {
                 records.put(record.id(), record);
             }

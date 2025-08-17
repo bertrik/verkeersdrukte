@@ -64,12 +64,12 @@ public final class Datex2IntegrationTest {
                 boolean hasAnyVehicle = false;
                 for (MeasuredValue measuredValue : siteMeasurements.measuredValueList) {
                     int index = measuredValue.index;
-                    MeasurementSpecificCharacteristics chars = msr.findCharacteristic(index);
+                    MeasurementSiteRecord.MeasurementSpecificCharacteristicsElement chars = msr.findCharacteristic(index);
                     if (chars == null) {
                         LOG.warn("Could not find index '{}' for site '{}' in MST", index, referenceId);
                         indexNotFound++;
                     } else {
-                        if (Objects.equals(chars.element().specificVehicleCharacteristics().vehicleType(), "anyVehicle")) {
+                        if (Objects.equals(chars.specificVehicleCharacteristics().vehicleType(), "anyVehicle")) {
                             hasAnyVehicle = true;
                         }
                     }

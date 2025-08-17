@@ -20,8 +20,8 @@ public final class SiteMeasurement {
         return dateTime;
     }
 
-    public void addLaneMeasurement(double flow, double speed) {
-        lanes.add(new LaneMeasurement(flow, speed));
+    public void addLaneMeasurement(String id, double flow, double speed) {
+        lanes.add(new LaneMeasurement(id, flow, speed));
     }
 
     public List<LaneMeasurement> getLanes() {
@@ -38,10 +38,10 @@ public final class SiteMeasurement {
             }
         }
         double averageSpeed = sumFlowSpeed / sumFlow;
-        return new LaneMeasurement(sumFlow, averageSpeed);
+        return new LaneMeasurement("total", sumFlow, averageSpeed);
     }
 
-    public record LaneMeasurement(double flow, double speed) {
+    public record LaneMeasurement(String id, double flow, double speed) {
     }
 
 }
