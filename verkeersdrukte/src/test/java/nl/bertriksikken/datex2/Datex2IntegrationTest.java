@@ -1,5 +1,6 @@
 package nl.bertriksikken.datex2;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import nl.bertriksikken.shapefile.ShapeFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +48,7 @@ public final class Datex2IntegrationTest {
         // load measurements
         LOG.info("Loading measurements ...");
         InputStream measurementStream = getClass().getResourceAsStream("/trafficspeed.xml.gz");
-        MeasuredDataPublication mdp = new MeasuredDataPublication();
+        MeasuredDataPublication mdp = new MeasuredDataPublication(new XmlMapper());
         try (GZIPInputStream gzis = new GZIPInputStream(measurementStream)) {
             mdp.parse(gzis);
         }

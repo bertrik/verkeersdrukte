@@ -1,5 +1,7 @@
 package nl.bertriksikken.verkeersdrukte.traffic;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.util.concurrent.Runnables;
 import io.dropwizard.lifecycle.Managed;
@@ -29,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -43,8 +46,8 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private static final Logger LOG = LoggerFactory.getLogger(TrafficHandler.class);
 
     private final Map<String, INotifyData> subscriptions = new ConcurrentHashMap<>();
-
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    private final XmlMapper xmlMapper = new XmlMapper();
     private final NdwClient ndwClient;
     private final MeasurementCache measurementCache;
     private final NdwDownloader ndwDownloader;
@@ -122,6 +125,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     }
 
     private void downloadShapeFile() {
+        LOG.info("Fetching shapefile...");
         try {
             if (shapeFileDownloader.download()) {
                 shapeFile = shapeFileDownloader.getGeoJson();
@@ -135,18 +139,17 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     }
 
     private void downloadMst() {
-        LOG.info("Downloading MST...");
+        LOG.info("Fetching MST...");
         try {
             File file = ndwDownloader.fetchFile(INdwApi.MEASUREMENT_SITE_TABLE);
             if (file != null) {
                 try (FileInputStream fis = new FileInputStream(file);
                      GZIPInputStream gzis = new GZIPInputStream(fis)) {
                     LOG.info("Parsing MST...");
-                    Instant startTime = Instant.now();
+                    Stopwatch sw = Stopwatch.createStarted();
                     mst = new MeasurementSiteTable(shapeFileDownloader.getSiteIds());
                     mst.parse(gzis);
-                    LOG.info("Parsed MST, {} entries, took {}",
-                            mst.getMeasurementSiteIds().size(), Duration.between(startTime, Instant.now()));
+                    LOG.info("Parsed MST, {} entries, took {}", mst.getMeasurementSiteIds().size(), sw.elapsed());
                 }
             } else {
                 LOG.warn("MST not downloaded");
@@ -157,13 +160,17 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     }
 
     private void decode(InputStream inputStream) throws IOException {
-        MeasuredDataPublication publication = new MeasuredDataPublication();
+        MeasuredDataPublication publication = new MeasuredDataPublication(xmlMapper);
         try (GZIPInputStream gzis = new GZIPInputStream(inputStream)) {
+            LOG.info("Parsing MDP...");
+            Stopwatch sw = Stopwatch.createStarted();
             publication.parse(gzis);
-            for (SiteMeasurements measurements : publication.getSiteMeasurementsList()) {
+            List<SiteMeasurements> siteMeasurementsList = publication.getSiteMeasurementsList();
+            for (SiteMeasurements measurements : siteMeasurementsList) {
                 SiteMeasurement siteMeasurement = processSiteMeasurements(measurements);
                 measurementCache.put(measurements.reference.id, siteMeasurement);
             }
+            LOG.info("Parsed MDP, {} entries, took {}", siteMeasurementsList.size(), sw.elapsed());
         }
     }
 
@@ -174,7 +181,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         Instant dateTime = measurements.getMeasurementTime();
         SiteMeasurement measurement = new SiteMeasurement(dateTime);
         // group by type
-        Map<String, MeasuredValue.TrafficFlow> flows = new HashMap<>();
+        Map<String, MeasuredValue.TrafficFlow> flows = new TreeMap<>(); // sorted on keys (lane id)
         Map<String, MeasuredValue.TrafficSpeed> speeds = new HashMap<>();
         String siteId = measurements.reference.id;
         MeasurementSiteRecord msr = mst.findMeasurementSiteRecord(siteId);

@@ -1,5 +1,6 @@
 package nl.bertriksikken.datex2;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -16,7 +17,7 @@ public final class MeasuredDataPublicationTest {
     @Test
     public void test() throws IOException {
         InputStream is = getClass().getResourceAsStream("/trafficspeed.xml.gz");
-        MeasuredDataPublication measuredDataPublication = new MeasuredDataPublication();
+        MeasuredDataPublication measuredDataPublication = new MeasuredDataPublication(new XmlMapper());
         try (GZIPInputStream gzis = new GZIPInputStream(is)) {
             LOG.info("Start parsing...");
             measuredDataPublication.parse(gzis);

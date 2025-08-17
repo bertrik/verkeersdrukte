@@ -21,6 +21,9 @@ public final class MeasuredValue {
     @JacksonXmlProperty(localName = "index", isAttribute = true)
     public int index;
 
+    @JacksonXmlProperty(localName = "type", isAttribute = true)
+    String type = ""; // sometimes "_SiteMeasurementsIndexMeasuredValue"
+
     @JacksonXmlProperty(localName = "measuredValue")
     public MeasuredValueWrapper measuredValue;
 

@@ -1,7 +1,10 @@
 package nl.bertriksikken.datex2;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -14,10 +17,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class MeasuredDataPublication {
+
+    private static final Logger LOG = LoggerFactory.getLogger(MeasuredDataPublication.class);
     private static final SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
 
     private final List<SiteMeasurements> siteMeasurementsList = new ArrayList<>();
-    private final XmlMapper mapper = new XmlMapper();
+    private final ObjectReader measurementsReader;
+
+    public MeasuredDataPublication(XmlMapper xmlMapper) {
+        measurementsReader = xmlMapper.readerFor(SiteMeasurements.class);
+    }
 
     public void parse(InputStream inputStream) throws IOException {
         try {
@@ -31,10 +40,10 @@ public final class MeasuredDataPublication {
 
     private void processRecord(String xml) {
         try {
-            SiteMeasurements siteMeasurements = mapper.readValue(xml, SiteMeasurements.class);
+            SiteMeasurements siteMeasurements = measurementsReader.readValue(xml);
             siteMeasurementsList.add(siteMeasurements);
         } catch (JsonProcessingException e) {
-            // ignore
+            LOG.warn("JSON parsing exception: {}", e.getMessage());
         }
     }
 
