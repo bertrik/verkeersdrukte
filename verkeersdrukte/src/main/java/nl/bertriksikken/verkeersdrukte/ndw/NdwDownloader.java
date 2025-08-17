@@ -62,7 +62,7 @@ public final class NdwDownloader implements AutoCloseable {
         try {
             FileResponse response = client.getFile(name, headers);
             switch (response.getCode()) {
-                case 200:
+                case 200 -> {
                     // save file to file system
                     try (FileOutputStream fos = new FileOutputStream(file)) {
                         fos.write(response.getContents());
@@ -71,13 +71,11 @@ public final class NdwDownloader implements AutoCloseable {
                     cacheEntry = cacheEntry.update(response.getEtag(), response.getLastModified());
                     cacheIndex.put(name, cacheEntry);
                     saveCache();
-                    break;
-                case 304:
+                }
+                case 304 -> {
                     // we already have the file in our cache, do nothing
-                    break;
-                default:
-                    LOG.warn("Failed to download '{}': {}", name, response);
-                    break;
+                }
+                default -> LOG.warn("Failed to download '{}': {}", name, response);
             }
         } catch (IOException e) {
             LOG.warn("Error processing: {}", e.getMessage());
