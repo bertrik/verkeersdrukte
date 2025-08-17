@@ -2,6 +2,8 @@
 dropwizard = "4.0.15"
 errorprone = "2.41.0"
 jackson = "2.19.2"
+jdbf = "2.2.4"
+jersey_media_sse = "3.1.11"
 junit = "5.13.4"
 retrofit = "3.0.0"
 
@@ -23,8 +25,8 @@ dropwizard-assets = { module = "io.dropwizard:dropwizard-assets", version.ref = 
 dropwizard-core = { module = "io.dropwizard:dropwizard-core", version.ref = "dropwizard" }
 dropwizard-swagger = { module = "com.smoketurner:dropwizard-swagger", version = "4.0.5-1" }
 
-jersey-media-sse = { module = "org.glassfish.jersey.media:jersey-media-sse", version = "3.1.10" }
-jdbf = { module = "com.github.spyhunter99:jdbf", version = "2.2.4" }
+jersey-media-sse = { module = "org.glassfish.jersey.media:jersey-media-sse", version.ref = "jersey_media_sse" }
+jdbf = { module = "com.github.spyhunter99:jdbf", version.ref = "jdbf" }
 
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
