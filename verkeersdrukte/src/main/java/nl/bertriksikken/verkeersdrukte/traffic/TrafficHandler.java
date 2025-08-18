@@ -68,12 +68,8 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         ndwDownloader.start();
 
         // schedule shape file download
-        LOG.info("Schedule shapefile download ...");
-        schedule(this::downloadShapeFile, Duration.ZERO);
-
-        // schedule MST download
-        LOG.info("Schedule MST download...");
-        schedule(this::downloadMst, Duration.ZERO);
+        LOG.info("Schedule shapefile/MST download ...");
+        schedule(this::downloadShapeFileMst, Duration.ZERO);
 
         // schedule regular fetches, starting immediately
         LOG.info("Schedule traffic speed download ...");
@@ -124,7 +120,8 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         notifyClients();
     }
 
-    private void downloadShapeFile() {
+    private void downloadShapeFileMst() {
+        // get shape file
         LOG.info("Fetching shapefile...");
         try {
             if (shapeFileDownloader.download()) {
@@ -134,11 +131,8 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         } catch (IOException e) {
             LOG.warn("Shapefile download failed with exception: {}", e.getMessage());
         }
-        // reschedule
-        schedule(this::downloadShapeFile, Duration.ofDays(1));
-    }
 
-    private void downloadMst() {
+        // get MST
         LOG.info("Fetching MST...");
         try {
             File file = ndwDownloader.fetchFile(INdwApi.MEASUREMENT_SITE_TABLE);
@@ -157,6 +151,9 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         } catch (IOException e) {
             LOG.warn("MST download failed: {}", e.getMessage());
         }
+
+        // reschedule
+        schedule(this::downloadShapeFileMst, Duration.ofDays(1));
     }
 
     private void decode(InputStream inputStream) throws IOException {
