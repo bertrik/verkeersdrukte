@@ -13,6 +13,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.sse.OutboundSseEvent;
 import jakarta.ws.rs.sse.Sse;
 import jakarta.ws.rs.sse.SseEventSink;
@@ -23,6 +24,7 @@ import nl.bertriksikken.verkeersdrukte.traffic.TrafficConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.OffsetDateTime;
@@ -55,6 +57,15 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
         this.handler = handler;
         this.config = config;
         mapper.findAndRegisterModules();
+    }
+
+    @Override
+    @GET
+    @Path("/")
+    @Produces(MediaType.TEXT_HTML)
+    public Response getIndex() {
+        InputStream in = getClass().getResourceAsStream("/assets/index.html");
+        return Response.ok(in, MediaType.TEXT_HTML).build();
     }
 
     @Override
