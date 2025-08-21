@@ -1,14 +1,12 @@
 package nl.bertriksikken.datex2;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonStreamContext;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.xml.XmlFactory;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import javax.xml.stream.XMLInputFactory;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,42 +15,52 @@ import java.util.Map;
 import java.util.Set;
 
 public final class MeasurementSiteTable {
-    private static final SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
-    private static final XMLInputFactory xmlInputFactory = XMLInputFactory.newFactory();
-    private final ObjectReader msrReader;
+
+    private static final XmlFactory xmlFactory;
+
+    static {
+        XMLInputFactory xmlInputFactory = XMLInputFactory.newFactory();
+        xmlInputFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, false);
+        xmlFactory = new XmlFactory(xmlInputFactory);
+    }
 
     private final Map<String, MeasurementSiteRecord> records = new LinkedHashMap<>();
     private final Set<String> siteIds;
-
-    static XmlMapper createXmlMapper() {
-        xmlInputFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, false);
-        return new XmlMapper(new XmlFactory(xmlInputFactory));
-    }
+    private final ObjectReader msrReader;
 
     public MeasurementSiteTable(Set<String> siteIds) {
         this.siteIds = Set.copyOf(siteIds);
         msrReader = createXmlMapper().readerFor(MeasurementSiteRecord.class);
     }
 
-    public void parse(InputStream inputStream) throws IOException {
-        try {
-            SAXParser saxParser = saxParserFactory.newSAXParser();
-            var handler = new SaxRecordHandler("measurementSiteTable/measurementSiteRecord", this::processRecord);
-            saxParser.parse(inputStream, handler);
-        } catch (ParserConfigurationException | SAXException e) {
-            throw new IOException(e);
+    static XmlMapper createXmlMapper() {
+        return new XmlMapper(xmlFactory);
+    }
+
+    public void parse(InputStream stream) throws IOException {
+        JsonParser parser = xmlFactory.createParser(stream);
+        for (JsonToken token = parser.nextToken(); token != null; token = parser.nextToken()) {
+            if (token.isStructStart()) {
+                String xpath = getPath(parser);
+                if (xpath.endsWith("/measurementSiteTable/measurementSiteRecord")) {
+                    MeasurementSiteRecord record = msrReader.readValue(parser);
+                    if (siteIds.isEmpty() || siteIds.contains(record.id())) {
+                        records.put(record.id(), record);
+                    }
+                }
+            }
         }
     }
 
-    private void processRecord(String s) {
-        try {
-            MeasurementSiteRecord record = msrReader.readValue(s);
-            if (siteIds.isEmpty() || siteIds.contains(record.id())) {
-                records.put(record.id(), record);
+    private String getPath(JsonParser parser) {
+        StringBuilder path = new StringBuilder();
+        for (JsonStreamContext ctx = parser.getParsingContext(); ctx != null; ctx = ctx.getParent()) {
+            String name = ctx.getCurrentName();
+            if (name != null) {
+                path.insert(0, "/" + name);
             }
-        } catch (JsonProcessingException e) {
-            // ignore
         }
+        return path.toString();
     }
 
     public Set<String> getMeasurementSiteIds() {
