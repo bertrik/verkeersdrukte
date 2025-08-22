@@ -38,14 +38,15 @@ public final class MeasurementSiteTable {
     }
 
     public void parse(InputStream stream) throws IOException {
-        JsonParser parser = xmlFactory.createParser(stream);
-        for (JsonToken token = parser.nextToken(); token != null; token = parser.nextToken()) {
-            if (token.isStructStart()) {
-                String xpath = getPath(parser);
-                if (xpath.endsWith("/measurementSiteTable/measurementSiteRecord")) {
-                    MeasurementSiteRecord record = msrReader.readValue(parser);
-                    if (siteIds.isEmpty() || siteIds.contains(record.id())) {
-                        records.put(record.id(), record);
+        try (JsonParser parser = xmlFactory.createParser(stream)) {
+            for (JsonToken token = parser.nextToken(); token != null; token = parser.nextToken()) {
+                if (token.isStructStart()) {
+                    String xpath = getPath(parser);
+                    if (xpath.endsWith("/measurementSiteTable/measurementSiteRecord")) {
+                        MeasurementSiteRecord record = msrReader.readValue(parser);
+                        if (siteIds.isEmpty() || siteIds.contains(record.id())) {
+                            records.put(record.id(), record);
+                        }
                     }
                 }
             }
