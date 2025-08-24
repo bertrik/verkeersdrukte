@@ -65,6 +65,8 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
 
     @Override
     public void start() {
+        LOG.info("TrafficHandler starting");
+
         ndwDownloader.start();
 
         // schedule shape file download
@@ -93,6 +95,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         ndwDownloader.close();
         ndwClient.close();
         executor.shutdownNow();
+        LOG.info("TrafficHandler stopped");
     }
 
     private void downloadTrafficSpeed() {

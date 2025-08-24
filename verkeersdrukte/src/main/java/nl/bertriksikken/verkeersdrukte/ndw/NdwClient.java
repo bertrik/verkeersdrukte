@@ -43,6 +43,7 @@ public final class NdwClient implements AutoCloseable {
     public void close() {
         httpClient.dispatcher().executorService().shutdown();
         httpClient.connectionPool().evictAll();
+        LOG.info("NdwClient closed");
     }
 
     private static okhttp3.Response addUserAgent(Interceptor.Chain chain) throws IOException {

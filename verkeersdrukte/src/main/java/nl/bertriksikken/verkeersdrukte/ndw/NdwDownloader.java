@@ -34,6 +34,7 @@ public final class NdwDownloader implements AutoCloseable {
     }
 
     public void start() {
+        LOG.info("NdwDownloader starting");
         cacheLocation.mkdirs();
         if (!loadCache()) {
             cacheIndex = new CacheIndex();
@@ -44,6 +45,7 @@ public final class NdwDownloader implements AutoCloseable {
     @Override
     public void close() {
         client.close();
+        LOG.info("NdwDownloader stopped");
     }
 
     /**
