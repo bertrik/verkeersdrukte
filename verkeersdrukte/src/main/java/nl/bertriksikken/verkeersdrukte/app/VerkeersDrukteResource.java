@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dropwizard.jersey.caching.CacheControl;
+import io.dropwizard.lifecycle.Managed;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
@@ -29,11 +30,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -41,13 +41,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Path(VerkeersDrukteResource.TRAFFIC_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Singleton
-public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
+public final class VerkeersDrukteResource implements IVerkeersDrukteResource, Managed {
     static final String TRAFFIC_PATH = "/traffic";
     static final String STATIC_PATH = "/static";
     static final String DYNAMIC_PATH = "/dynamic";
     private static final Logger LOG = LoggerFactory.getLogger(VerkeersDrukteResource.class);
     private static final ObjectMapper mapper = new ObjectMapper();
-    private final Set<SseEventSink> sinks = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Map<String, SseEventSink> sinks = new ConcurrentHashMap<>();
 
     private final ITrafficHandler handler;
     private final AtomicInteger atomicInteger = new AtomicInteger();
@@ -58,6 +58,21 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
         this.handler = handler;
         this.config = config;
         mapper.findAndRegisterModules();
+    }
+
+    @Override
+    public void stop() {
+        LOG.info("Stopping VerkeersDrukteResource");
+        sinks.values().forEach(this::closeSink);
+        sinks.clear();
+    }
+
+    private void closeSink(SseEventSink sink) {
+        try {
+            sink.close();
+        } catch (Exception e) {
+            LOG.warn("Ignoring exception during sink.close(): {}", e.getMessage());
+        }
     }
 
     @Override
@@ -136,7 +151,7 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
 
         //  register locally
         String clientId = "client-" + atomicInteger.incrementAndGet();
-        sinks.add(sink);
+        sinks.put(clientId, sink);
 
         // send initial data
         eventCallback(sse, sink, location, clientId);
@@ -157,8 +172,8 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
                     if (error != null) {
                         LOG.info("Unsubscribing client '{}' for '{}'", clientId, location);
                         handler.unsubscribe(clientId);
-                        sinks.remove(sink);
-                        sink.close();
+                        sinks.remove(clientId);
+                        closeSink(sink);
                     }
                 });
             }
