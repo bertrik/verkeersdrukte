@@ -40,12 +40,13 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
     public void run(VerkeersDrukteAppConfig configuration, Environment environment) {
         headers = configuration.getHeaders();
 
-        ScheduledExecutorService executor = environment.lifecycle().scheduledExecutorService("traffic").build();
+        ScheduledExecutorService executor = environment.lifecycle().scheduledExecutorService("traffic", true).build();
         TrafficHandler ndwHandler = new TrafficHandler(configuration, executor);
-        VerkeersDrukteResource resource = new VerkeersDrukteResource(ndwHandler, configuration.getTrafficConfig());
         environment.healthChecks().register("ndw", new VerkeersDrukteHealthCheck(ndwHandler));
-        environment.jersey().register(resource);
         environment.lifecycle().manage(ndwHandler);
+
+        VerkeersDrukteResource resource = new VerkeersDrukteResource(ndwHandler, configuration.getTrafficConfig());
+        environment.jersey().register(resource);
         environment.lifecycle().manage(resource);
 
         // Add headers to each response
