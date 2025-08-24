@@ -92,9 +92,9 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
 
     @Override
     public void stop() {
+        executor.shutdownNow();
         ndwDownloader.close();
         ndwClient.close();
-        executor.shutdownNow();
         LOG.info("TrafficHandler stopped");
     }
 
@@ -113,12 +113,12 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         }
 
         // schedule next
-        Duration interval = Duration.between(Instant.now(), next);
-        while (interval.isNegative()) {
-            interval = interval.plusSeconds(60);
+        Duration delay = Duration.between(Instant.now(), next);
+        while (delay.isNegative()) {
+            delay = delay.plusSeconds(60);
         }
-        LOG.info("Scheduling next download in {}", interval);
-        schedule(this::downloadTrafficSpeed, interval);
+        LOG.info("Scheduling next download in {}", delay);
+        schedule(this::downloadTrafficSpeed, delay);
 
         notifyClients();
     }
