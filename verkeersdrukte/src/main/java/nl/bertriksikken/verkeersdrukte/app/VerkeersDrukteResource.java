@@ -30,7 +30,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -51,7 +50,7 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource, Ma
     static final String DYNAMIC_PATH = "/dynamic";
     private static final Logger LOG = LoggerFactory.getLogger(VerkeersDrukteResource.class);
     private static final ObjectMapper mapper = new ObjectMapper();
-    private final Set<SseEventSink> sinks = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<SseEventSink> sinks = ConcurrentHashMap.newKeySet();
 
     private final ITrafficHandler handler;
     private final AtomicInteger atomicInteger = new AtomicInteger();
@@ -144,11 +143,9 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource, Ma
             throw new NotFoundException();
         }
 
-        // bookkeeping
-        sinks.add(sseEventSink);
-
         //  get initial data
         String clientId = "client-" + atomicInteger.incrementAndGet();
+        sinks.add(sseEventSink);
         BlockingQueue<SiteMeasurement> queue = new ArrayBlockingQueue<>(3);
         eventCallback(clientId, queue, location);
 
@@ -162,7 +159,9 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource, Ma
                     String id = String.valueOf(measurement.getDateTime().getEpochSecond() / 60);
                     String json = mapper.writeValueAsString(new DynamicDataJson(measurement));
                     OutboundSseEvent event = sse.newEventBuilder().id(id).data(json).build();
-                    sseEventSink.send(event);
+                    sseEventSink.send(event).whenComplete((o, throwable) -> {
+                        LOG.warn("Sending SSE failed for {}: {}", clientId, throwable.getMessage());
+                    });
                 }
             }
         } catch (InterruptedException | JsonProcessingException e) {
