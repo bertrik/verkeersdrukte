@@ -71,11 +71,9 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         ndwDownloader.start();
 
         // schedule shape file download
-        LOG.info("Schedule shapefile/MST download ...");
         schedule(this::downloadShapeFileMst, Duration.ZERO);
 
         // schedule regular fetches, starting immediately
-        LOG.info("Schedule traffic speed download ...");
         schedule(this::downloadTrafficSpeed, Duration.ZERO);
     }
 
@@ -84,8 +82,8 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         Runnable runnable = () -> {
             try {
                 action.run();
-            } catch (Throwable e) {
-                LOG.warn("Caught throwable in scheduled task", e);
+            } catch (Throwable e2) {
+                LOG.warn("Caught throwable in scheduled task", e2);
             }
         };
         executor.schedule(runnable, delay.toMillis(), TimeUnit.MILLISECONDS);
@@ -108,6 +106,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
             next = response.getLastModified().plusSeconds(65);
             LOG.info("Got data, {} bytes, age {}", response.getContents().length, age);
             decode(new ByteArrayInputStream(response.getContents()));
+            notifyClients();
         } catch (IOException e) {
             LOG.warn("Download failed", e);
             next = Instant.now().plusSeconds(60);
@@ -118,10 +117,8 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         while (delay.isNegative()) {
             delay = delay.plusSeconds(60);
         }
-        LOG.info("Scheduling next download in {}", delay);
+        LOG.info("Scheduling next traffic/speed download in {}", delay);
         schedule(this::downloadTrafficSpeed, delay);
-
-        notifyClients();
     }
 
     private void downloadShapeFileMst() {
