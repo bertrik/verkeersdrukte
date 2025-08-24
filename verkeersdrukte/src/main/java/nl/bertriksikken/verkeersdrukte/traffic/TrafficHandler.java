@@ -92,6 +92,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
 
     @Override
     public void stop() {
+        LOG.info("TrafficHandler stopping...");
         executor.shutdownNow();
         ndwDownloader.close();
         ndwClient.close();

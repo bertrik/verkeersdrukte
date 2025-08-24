@@ -65,8 +65,9 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource, Ma
 
     @Override
     public void stop() {
+        LOG.info("VerkeersDrukteResource stopping...");
         sinks.forEach(SseEventSink::close);
-        LOG.info("VerkeersdrukteResource closed");
+        LOG.info("VerkeersdrukteResource stopped");
     }
 
     @Override
