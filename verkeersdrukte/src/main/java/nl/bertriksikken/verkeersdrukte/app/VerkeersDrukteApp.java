@@ -44,6 +44,7 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
         environment.healthChecks().register("ndw", new VerkeersDrukteHealthCheck(ndwHandler));
         environment.jersey().register(resource);
         environment.lifecycle().manage(ndwHandler);
+        environment.lifecycle().manage(resource);
 
         // Add headers to each response
         environment.jersey().register((ContainerResponseFilter) this::addHeaders);

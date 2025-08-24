@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dropwizard.jersey.caching.CacheControl;
+import io.dropwizard.lifecycle.Managed;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
@@ -29,24 +30,28 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Path(VerkeersDrukteResource.TRAFFIC_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Singleton
-public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
+public final class VerkeersDrukteResource implements IVerkeersDrukteResource, Managed {
     static final String TRAFFIC_PATH = "/traffic";
     static final String STATIC_PATH = "/static";
     static final String DYNAMIC_PATH = "/dynamic";
     private static final Logger LOG = LoggerFactory.getLogger(VerkeersDrukteResource.class);
     private static final ObjectMapper mapper = new ObjectMapper();
+    private final Set<SseEventSink> sinks = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     private final ITrafficHandler handler;
     private final AtomicInteger atomicInteger = new AtomicInteger();
@@ -57,6 +62,11 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
         this.handler = handler;
         this.config = config;
         mapper.findAndRegisterModules();
+    }
+
+    @Override
+    public void stop() {
+        sinks.forEach(SseEventSink::close);
     }
 
     @Override
@@ -133,6 +143,9 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
             throw new NotFoundException();
         }
 
+        // bookkeeping
+        sinks.add(sseEventSink);
+
         //  get initial data
         String clientId = "client-" + atomicInteger.incrementAndGet();
         BlockingQueue<SiteMeasurement> queue = new ArrayBlockingQueue<>(3);
@@ -156,6 +169,7 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
         } finally {
             LOG.info("Unsubscribing client '{}' for '{}'", clientId, location);
             handler.unsubscribe(clientId);
+            sinks.remove(sseEventSink);
         }
     }
 
