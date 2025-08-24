@@ -122,19 +122,14 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
 
     private void downloadShapeFileMst() {
         // get shape file
-        LOG.info("Fetching shapefile...");
         try {
+            LOG.info("Fetching shapefile...");
             if (shapeFileDownloader.download()) {
                 shapeFile = shapeFileDownloader.getGeoJson();
                 LOG.info("Parsed shapefile, {} features", shapeFile.getFeatures().size());
             }
-        } catch (IOException e) {
-            LOG.warn("Shapefile download failed with exception: {}", e.getMessage());
-        }
 
-        // get MST
-        LOG.info("Fetching MST...");
-        try {
+            LOG.info("Fetching MST...");
             File file = ndwDownloader.fetchFile(INdwApi.MEASUREMENT_SITE_TABLE);
             if (file != null) {
                 try (FileInputStream fis = new FileInputStream(file);
@@ -149,7 +144,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
                 LOG.warn("MST not downloaded");
             }
         } catch (IOException e) {
-            LOG.warn("MST download failed: {}", e.getMessage());
+            LOG.warn("Shapefile/MST download failed: {}", e.getMessage());
         }
 
         // reschedule
