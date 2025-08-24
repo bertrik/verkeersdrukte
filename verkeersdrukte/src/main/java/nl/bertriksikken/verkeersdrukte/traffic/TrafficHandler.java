@@ -30,11 +30,11 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -46,7 +46,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private static final Logger LOG = LoggerFactory.getLogger(TrafficHandler.class);
 
     private final Map<String, INotifyData> subscriptions = new ConcurrentHashMap<>();
-    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService executor;
     private final XmlMapper xmlMapper = new XmlMapper();
     private final NdwClient ndwClient;
     private final MeasurementCache measurementCache;
@@ -56,7 +56,8 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
 
     private FeatureCollection shapeFile = new FeatureCollection();
 
-    public TrafficHandler(VerkeersDrukteAppConfig config) {
+    public TrafficHandler(VerkeersDrukteAppConfig config, ScheduledExecutorService executor) {
+        this.executor = Objects.requireNonNull(executor);
         ndwClient = NdwClient.create(config.getNdwConfig());
         measurementCache = new MeasurementCache(config.getTrafficConfig().getExpiryDuration());
         ndwDownloader = new NdwDownloader(config.getNdwConfig());
@@ -93,7 +94,6 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     @Override
     public void stop() {
         LOG.info("TrafficHandler stopping...");
-        executor.shutdownNow();
         ndwDownloader.close();
         ndwClient.close();
         LOG.info("TrafficHandler stopped");

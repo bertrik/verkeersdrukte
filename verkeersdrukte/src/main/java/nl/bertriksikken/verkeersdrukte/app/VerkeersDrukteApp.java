@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
 
 public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig> {
 
@@ -39,7 +40,8 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
     public void run(VerkeersDrukteAppConfig configuration, Environment environment) {
         headers = configuration.getHeaders();
 
-        TrafficHandler ndwHandler = new TrafficHandler(configuration);
+        ScheduledExecutorService executor = environment.lifecycle().scheduledExecutorService("traffic").build();
+        TrafficHandler ndwHandler = new TrafficHandler(configuration, executor);
         VerkeersDrukteResource resource = new VerkeersDrukteResource(ndwHandler, configuration.getTrafficConfig());
         environment.healthChecks().register("ndw", new VerkeersDrukteHealthCheck(ndwHandler));
         environment.jersey().register(resource);
