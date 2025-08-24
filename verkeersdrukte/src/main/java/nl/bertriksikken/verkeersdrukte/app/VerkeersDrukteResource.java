@@ -30,13 +30,11 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -50,7 +48,7 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource, Ma
     static final String DYNAMIC_PATH = "/dynamic";
     private static final Logger LOG = LoggerFactory.getLogger(VerkeersDrukteResource.class);
     private static final ObjectMapper mapper = new ObjectMapper();
-    private final Set<SseEventSink> sinks = ConcurrentHashMap.newKeySet();
+    private final Set<SseEventSink> sinks = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     private final ITrafficHandler handler;
     private final AtomicInteger atomicInteger = new AtomicInteger();
@@ -138,48 +136,42 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource, Ma
     @Path(DYNAMIC_PATH + "/{location}/events")
     @Produces(MediaType.SERVER_SENT_EVENTS)
     @CacheControl(noCache = true)
-    public void getTrafficEvents(@Context Sse sse, @Context SseEventSink sseEventSink, @PathParam("location") String location) {
+    public void getTrafficEvents(@Context Sse sse, @Context SseEventSink sink, @PathParam("location") String location) {
         // verify that location exists
         if (handler.getStaticData(location) == null) {
             throw new NotFoundException();
         }
 
-        //  get initial data
+        //  register locally
         String clientId = "client-" + atomicInteger.incrementAndGet();
-        sinks.add(sseEventSink);
-        BlockingQueue<SiteMeasurement> queue = new ArrayBlockingQueue<>(3);
-        eventCallback(clientId, queue, location);
+        sinks.add(sink);
+
+        // send initial data
+        eventCallback(sse, sink, location, clientId);
 
         // subscribe to updates
         LOG.info("Subscribing client '{}' for '{}'", clientId, location);
-        handler.subscribe(clientId, () -> eventCallback(clientId, queue, location));
-        try (sseEventSink) {
-            while (!sseEventSink.isClosed()) {
-                SiteMeasurement measurement = queue.poll(1, TimeUnit.SECONDS);
-                if (measurement != null) {
-                    String id = String.valueOf(measurement.getDateTime().getEpochSecond() / 60);
-                    String json = mapper.writeValueAsString(new DynamicDataJson(measurement));
-                    OutboundSseEvent event = sse.newEventBuilder().id(id).data(json).build();
-                    sseEventSink.send(event).whenComplete((o, throwable) -> {
-                        LOG.warn("Sending SSE failed for {}: {}", clientId, throwable.getMessage());
-                    });
-                }
-            }
-        } catch (InterruptedException | JsonProcessingException e) {
-            LOG.warn("Error sending SSE: {}", e.getMessage());
-        } finally {
-            LOG.info("Unsubscribing client '{}' for '{}'", clientId, location);
-            handler.unsubscribe(clientId);
-            sinks.remove(sseEventSink);
-        }
+        handler.subscribe(clientId, () -> eventCallback(sse, sink, location, clientId));
     }
 
-    private void eventCallback(String clientId, Queue<SiteMeasurement> queue, String location) {
-        SiteMeasurement aggregateMeasurement = handler.getDynamicData(location);
-        if (aggregateMeasurement != null) {
-            if (!queue.offer(aggregateMeasurement)) {
-                LOG.warn("Queue for client '{}' location '{}' got stuck", clientId, location);
+    private void eventCallback(Sse sse, SseEventSink sink, String location, String clientId) {
+        try {
+            SiteMeasurement measurement = handler.getDynamicData(location);
+            if (measurement != null) {
+                String json = mapper.writeValueAsString(new DynamicDataJson(measurement));
+                String id = String.valueOf(measurement.getDateTime().getEpochSecond() / 60);
+                OutboundSseEvent event = sse.newEventBuilder().id(id).data(String.class, json).build();
+                sink.send(event).whenComplete((result, error) -> {
+                    if (error != null) {
+                        LOG.info("Unsubscribing client '{}' for '{}'", clientId, location);
+                        handler.unsubscribe(clientId);
+                        sinks.remove(sink);
+                        sink.close();
+                    }
+                });
             }
+        } catch (JsonProcessingException e) {
+            LOG.warn("Failed to serialize DynamicDataJson: {}", e.getMessage());
         }
     }
 
