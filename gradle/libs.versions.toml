@@ -1,7 +1,7 @@
 [versions]
-dropwizard = "4.0.15"
+dropwizard = "4.0.16"
 errorprone = "2.41.0"
-jackson = "2.19.2"
+jackson = "2.20.0"
 jdbf = "2.2.4"
 jersey_media_sse = "3.1.11"
 junit = "5.13.4"
