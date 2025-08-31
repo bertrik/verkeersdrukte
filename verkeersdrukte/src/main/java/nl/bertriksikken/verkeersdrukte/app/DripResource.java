@@ -55,9 +55,9 @@ public final class DripResource {
         FeatureCollection.Feature feature = new FeatureCollection.Feature(f);
         String id = (String) f.getProperties().getOrDefault("id", "");
         if (!id.isEmpty()) {
-            String staticDataUrl = config.getBaseUrl() + PATH + STATIC_PATH + "/" + id;
+            String staticDataUrl = PATH + STATIC_PATH + "/" + id;
             feature.addProperty("staticDataUrl", staticDataUrl);
-            String dynamicDataUrl = config.getBaseUrl() + PATH + DYNAMIC_PATH + "/" + id;
+            String dynamicDataUrl = PATH + DYNAMIC_PATH + "/" + id;
             feature.addProperty("dynamicDataUrl", dynamicDataUrl);
         }
         return feature;
