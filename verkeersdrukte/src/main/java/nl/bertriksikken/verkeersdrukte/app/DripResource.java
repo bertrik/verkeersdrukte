@@ -77,8 +77,8 @@ public final class DripResource {
     }
 
     private Feature mapVmsUnitRecord(VmsUnitRecord vmsUnitRecord) {
-        Feature feature = Optional.ofNullable(vmsUnitRecord)
-                .map(r -> r.find(1))
+        VmsRecord vmsRecord = Optional.ofNullable(vmsUnitRecord).map(r -> r.find(1)).orElse(null);
+        Feature feature = Optional.ofNullable(vmsRecord)
                 .map(VmsRecord::vmsLocation)
                 .map(VmsLocation::locationForDisplay)
                 .filter(LocationForDisplay::isValid)
@@ -87,6 +87,8 @@ public final class DripResource {
                 .orElse(null);
         if (feature != null) {
             feature.addProperty("id", vmsUnitRecord.getId());
+            feature.addProperty("physicalMounting", vmsRecord.physicalMounting());
+            feature.addProperty("type", vmsRecord.type());
         }
         return feature;
     }
@@ -122,7 +124,7 @@ public final class DripResource {
 
     private DynamicDataJson mapVmsMessage(VmsMessage vmsMessage) {
         Instant timeLastSet = Instant.parse(vmsMessage.timeLastSet());
-        byte[] imageData = Optional.ofNullable(vmsMessage)
+        byte[] imageData = Optional.of(vmsMessage)
                 .map(VmsMessage::extension)
                 .map(VmsMessageExtension::vmsImage)
                 .map(VmsImage::imageData)

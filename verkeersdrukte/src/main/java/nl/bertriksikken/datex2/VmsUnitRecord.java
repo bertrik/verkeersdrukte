@@ -6,6 +6,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A record from the VmsTablePublication, containing static location data of a VMS.
@@ -55,15 +56,18 @@ public final class VmsUnitRecord {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record VmsRecord(@JacksonXmlProperty(localName = "vmsLocation") VmsLocation vmsLocation) {
+    public record VmsRecord(@JacksonXmlProperty(localName = "vmsLocation") VmsLocation vmsLocation,
+                            @JacksonXmlProperty(localName = "vmsType") String type,
+                            @JacksonXmlProperty(localName = "vmsPhysicalMounting") String physicalMounting
+    ) {
         public VmsRecord {
-            if (vmsLocation == null) {
-                vmsLocation = new VmsLocation(Double.NaN, Double.NaN);
-            }
+            vmsLocation = (vmsLocation == null) ? new VmsLocation(Double.NaN, Double.NaN) : vmsLocation;
+            type = Objects.toString(type, "");
+            physicalMounting = Objects.toString(physicalMounting, "");
         }
 
         public VmsRecord(double latitude, double longitude) {
-            this(new VmsLocation(latitude, longitude));
+            this(new VmsLocation(latitude, longitude), "", "");
         }
 
         @JsonIgnoreProperties(ignoreUnknown = true)

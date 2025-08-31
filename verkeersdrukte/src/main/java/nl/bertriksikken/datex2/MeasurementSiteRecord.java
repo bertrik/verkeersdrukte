@@ -3,10 +3,10 @@ package nl.bertriksikken.datex2;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.google.common.base.Strings;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MeasurementSiteRecord {
@@ -55,7 +55,7 @@ public class MeasurementSiteRecord {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record SpecificVehicleCharacteristics(@JacksonXmlProperty(localName = "vehicleType") String vehicleType) {
         public SpecificVehicleCharacteristics {
-            vehicleType = Strings.nullToEmpty(vehicleType);
+            vehicleType = Objects.toString(vehicleType, "");
         }
     }
 

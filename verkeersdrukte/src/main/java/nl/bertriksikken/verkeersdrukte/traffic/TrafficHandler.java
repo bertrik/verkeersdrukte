@@ -2,7 +2,6 @@ package nl.bertriksikken.verkeersdrukte.traffic;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Stopwatch;
-import com.google.common.base.Strings;
 import com.google.common.util.concurrent.Runnables;
 import io.dropwizard.lifecycle.Managed;
 import nl.bertriksikken.datex2.MeasuredDataPublication;
@@ -33,6 +32,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -258,7 +258,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
                 LOG.warn("MeasurementSpecificCharacteristics not found for site '{}', index '{}", siteId, value.index);
                 continue;
             }
-            String vehicleType = Strings.nullToEmpty(chars.specificVehicleCharacteristics().vehicleType());
+            String vehicleType = Objects.toString(chars.specificVehicleCharacteristics().vehicleType(), "");
             if (!vehicleType.equals("anyVehicle")) {
                 continue;
             }
