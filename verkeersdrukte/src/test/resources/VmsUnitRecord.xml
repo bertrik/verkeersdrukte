@@ -1,0 +1,27 @@
+<vmsUnitRecord id="NDW05_VMS_fc0b6186-43e1-38ae-bd17-994eaf475abe" version="1">
+    <numberOfVms>1</numberOfVms>
+    <vmsRecord vmsIndex="1">
+        <vmsRecord>
+            <vmsDescription>
+                <values>
+                    <value lang="nl">VMSOXFO-V0018 - A4144 Redbridge P&amp;R (120x64)
+                        (07189400-6d65-4056-b71f-e17be4005cc5)
+                    </value>
+                </values>
+            </vmsDescription>
+            <vmsPhysicalMounting>roadsideMounted</vmsPhysicalMounting>
+            <vmsType>colourGraphic</vmsType>
+            <vmsLocation xsi:type="Point">
+                <locationForDisplay>
+                    <latitude>51.729095</latitude>
+                    <longitude>-1.2482835</longitude>
+                </locationForDisplay>
+                <supplementaryPositionalDescription>
+                    <affectedCarriagewayAndLanes>
+                        <carriageway>mainCarriageway</carriageway>
+                    </affectedCarriagewayAndLanes>
+                </supplementaryPositionalDescription>
+            </vmsLocation>
+        </vmsRecord>
+    </vmsRecord>
+</vmsUnitRecord>

@@ -1,5 +1,7 @@
 package nl.bertriksikken.verkeersdrukte.traffic;
 
+import nl.bertriksikken.datex2.VmsPublication;
+import nl.bertriksikken.datex2.VmsTablePublication;
 import nl.bertriksikken.geojson.FeatureCollection;
 
 public interface ITrafficHandler {
@@ -11,6 +13,10 @@ public interface ITrafficHandler {
     FeatureCollection getStaticData();
 
     FeatureCollection.Feature getStaticData(String location);
+
+    VmsTablePublication getVmsLocationTable();
+
+    VmsPublication getVmsPublication();
 
     void subscribe(String clientId, INotifyData callback);
 

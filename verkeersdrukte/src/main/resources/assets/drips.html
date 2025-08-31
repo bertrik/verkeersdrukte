@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <title>NL DRIPS</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <link rel="icon" type="image/x-icon" href="favicon.png">
+    <style>
+        #map {
+            height: 95vh;
+        }
+    </style>
+</head>
+
+<body>
+<div id="map"></div>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    // Initialize the map
+    const map = L.map('map').setView([52, 4.7], 11);
+
+    // Add a tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '(c) OpenStreetMap contributors'
+    }).addTo(map);
+
+    fetch('/drips/static')
+        .then(res => res.json())
+        .then(json => {
+            L.geoJSON(json, {
+                pointToLayer: createMarker,
+                onEachFeature: createPopup
+            }).addTo(map)
+        })
+
+    // creates the marker
+    function createMarker(feature, latlng) {
+        return L.circleMarker(latlng, {
+            radius: 10,
+            color: 'blue',
+            fillColor: 'lightblue',
+            fillOpacity: 0.55
+        });
+    }
+
+    function formatHeader(props) {
+        return `<strong>${props.id}</strong>`;
+    }
+
+    // creates the popup with associated click behaviour
+    function createPopup(feature, layer) {
+        layer.on('click', () => {
+            const props = feature.properties;
+            const header = formatHeader(props);
+            const popup = L.popup().setLatLng(layer.getLatLng()).setContent(header + '<p>Loading...</p>').openOn(map);
+            fetch(props.dynamicDataUrl)
+                .then(response => response.json())
+                .then(dynamic => {
+                    var content = header;
+                    var imgHtml = '<img src="data:image/png;base64,' + dynamic.pngData + '" width="400px" />';
+                    content += `<div style="text-align:center;">` + imgHtml + `</div>`;
+                    popup.setContent(content).openOn(map);
+                }).catch(error => {
+                    popup.setContent(header + `<p>Error fetching data</p>`).openOn(map);
+                    console.error("Error fetching data:", error);
+            });
+        });
+    }
+</script>
+</body>
+
+</html>

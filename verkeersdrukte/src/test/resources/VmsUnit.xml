@@ -1,0 +1,25 @@
+<vmsUnit>
+    <vmsUnitTableReference id="NDW02_VMST" version="2315" targetClass="VmsUnitTable"/>
+    <vmsUnitReference id="NDW05_VMS_c5f3ed41-7903-3dfd-ae24-44ea8e643db3" version="7" targetClass="VmsUnitRecord"/>
+    <vms vmsIndex="1">
+        <vms>
+            <vmsWorking>false</vmsWorking>
+            <vmsMessage messageIndex="1">
+                <vmsMessage>
+                    <timeLastSet>2025-08-26T09:53:34Z</timeLastSet>
+                    <vmsMessageExtension>
+                        <vmsMessageExtension>
+                            <vmsImage>
+                                <imageData>
+                                    <binary>iVBORw0KGgoAAAANSUhEUgAAANAAAAA2CAIAAAA524C8AAACXElEQVR42u2b3Y6EIAxGef+XZpO9mkQoHz+FiufEi9kJo64caymY0o3kThLAjF779wAfMizaIYyfzJ+wx1npB/2oZMGP7iec023wJuHy/7ahv0Opf0S4yV6/Qbj8s4USzrhASoSw25wVbjI6vvkZ99iCCGfoogwOmm0QLoRtrs7pV8pwZeE3y4VTkjP7t0pgtves3KW1Hbo/c48LV7xGv3++SLhmadBuIBYX9YhuHL0puotzT8O8nWt2QO2eiy+cIVCvcHYKa7sutrRF9HIuiHC9vb5ZOHFiQ49GXc/K5QdSbhWXTLHmlqtzCBdWON+hSdaEy1uEs/+xdz1Szwo3lgLuFm5nWU4fOiHcPcLlHuGys3BigRfhVvlxWLiZNmvrcAh3p3C5X7iMcBuFmymLRBduVcvldbiBlEUZY+r2O9XhBiq3XRLP1OFchGtnb7/VPwfnbOEGIl+oyXtxEfKSqS1xGuOkcKJtrs5dvzxpyVyq+FicCfy7hdPjgUeQe8sCzCPnlu5AHSs89Xcuy0VeYo5wi8Ob2Bk7l2d++SWae4QrRqnaKoZtJZIxgS5+TfBO4Z4ps5RpHhIO7snehoXDORgZKxRLPtZgHudgphRSW2o7U1gBbJOES6WRBEEOloW3WurWLr4jHAyHt9R6P4ogByvD2/NzLci5TnbBV7K3onDFsOe9igSuta0Y0nrf5MY56B4rGAr2OgfYpoY3WzjrNXGcgzRkWzOTI8jByvBmJHa2cwQ5hNvd/QiHbceEw7lPC3dkA4RDOLjUOcA5bAMAAAAAAAAAAAAAAIB4/AFSFefBDeWUzQAAAABJRU5ErkJggg==</binary>
+                                    <encoding>base64</encoding>
+                                    <mimeType>image/png</mimeType>
+                                </imageData>
+                            </vmsImage>
+                        </vmsMessageExtension>
+                    </vmsMessageExtension>
+                </vmsMessage>
+            </vmsMessage>
+        </vms>
+    </vms>
+</vmsUnit>

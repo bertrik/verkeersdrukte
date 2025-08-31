@@ -11,7 +11,10 @@ import nl.bertriksikken.datex2.MeasurementSiteRecord;
 import nl.bertriksikken.datex2.MeasurementSiteRecord.MeasurementSpecificCharacteristicsElement;
 import nl.bertriksikken.datex2.MeasurementSiteTable;
 import nl.bertriksikken.datex2.SiteMeasurements;
+import nl.bertriksikken.datex2.VmsPublication;
+import nl.bertriksikken.datex2.VmsTablePublication;
 import nl.bertriksikken.geojson.FeatureCollection;
+import nl.bertriksikken.geojson.FeatureCollection.Feature;
 import nl.bertriksikken.verkeersdrukte.app.VerkeersDrukteAppConfig;
 import nl.bertriksikken.verkeersdrukte.ndw.FileResponse;
 import nl.bertriksikken.verkeersdrukte.ndw.INdwApi;
@@ -55,6 +58,8 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private MeasurementSiteTable mst = new MeasurementSiteTable(Set.of());
 
     private FeatureCollection shapeFile = new FeatureCollection();
+    private VmsTablePublication vmsLocationTable = new VmsTablePublication();
+    private VmsPublication vmsPublication;
 
     public TrafficHandler(VerkeersDrukteAppConfig config) {
         ndwClient = NdwClient.create(config.getNdwConfig());
@@ -74,6 +79,9 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         // schedule regular fetches, starting immediately
         LOG.info("Schedule traffic speed download ...");
         schedule(this::downloadTrafficSpeed, Duration.ZERO);
+
+        // schedule VMS download
+        schedule(this::downloadVmsPublication, Duration.ZERO);
     }
 
     @SuppressWarnings("FutureReturnValueIgnored")
@@ -120,7 +128,53 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         notifyClients();
     }
 
+    private void downloadVmsPublication() {
+        LOG.info("Download VMS publication");
+        Instant next;
+        try {
+            FileResponse response = ndwClient.getVmsPublication();
+            Duration age = Duration.between(response.getLastModified(), Instant.now());
+            next = response.getLastModified().plusSeconds(65);
+            LOG.info("Got data, {} bytes, age {}", response.getContents().length, age);
+            decodeVmsPublication(new ByteArrayInputStream(response.getContents()));
+        } catch (IOException e) {
+            LOG.warn("Download VMS failed", e);
+            next = Instant.now().plusSeconds(60);
+        }
+
+        // schedule next
+        Duration interval = Duration.between(Instant.now(), next);
+        while (interval.isNegative()) {
+            interval = interval.plusSeconds(60);
+        }
+        LOG.info("Scheduling next VMS download in {}", interval);
+        schedule(this::downloadVmsPublication, interval);
+
+        notifyClients();
+
+    }
+
     private void downloadShapeFileMst() {
+        // get VMS location table
+        LOG.info("Fetching VMS location table...");
+        try {
+            File file = ndwDownloader.fetchFile(INdwApi.VMS_LOCATION_TABLE);
+            if (file != null) {
+                try (GZIPInputStream gzis = new GZIPInputStream(new FileInputStream(file))) {
+                    LOG.info("Parsing VMS location table...");
+                    Stopwatch sw = Stopwatch.createStarted();
+                    VmsTablePublication vmsTablePublication = new VmsTablePublication();
+                    vmsTablePublication.parse(gzis);
+                    LOG.info("Parsed VMS location table, {} entries, took {}", vmsTablePublication.getRecords().size(), sw.elapsed());
+                    vmsLocationTable = vmsTablePublication;
+                }
+            } else {
+                LOG.warn("VMS location table downloaded");
+            }
+        } catch (IOException e) {
+            LOG.warn("VMS location table download failed: {}", e.getMessage());
+        }
+
         // get shape file
         LOG.info("Fetching shapefile...");
         try {
@@ -168,6 +222,17 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
                 measurementCache.put(measurements.reference.id, siteMeasurement);
             }
             LOG.info("Parsed MDP, {} entries, took {}", siteMeasurementsList.size(), sw.elapsed());
+        }
+    }
+
+    private void decodeVmsPublication(InputStream inputStream) throws IOException {
+        VmsPublication publication = new VmsPublication(xmlMapper);
+        try (GZIPInputStream gzis = new GZIPInputStream(inputStream)) {
+            LOG.info("Parsing VmsPublication...");
+            Stopwatch sw = Stopwatch.createStarted();
+            publication.parse(gzis);
+            LOG.info("Parsed VmsPublication, {} entries, took {}", publication.getRecords().size(), sw.elapsed());
+            vmsPublication = publication;
         }
     }
 
@@ -237,8 +302,8 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     }
 
     @Override
-    public FeatureCollection.Feature getStaticData(String location) {
-        for (FeatureCollection.Feature feature : shapeFile.getFeatures()) {
+    public Feature getStaticData(String location) {
+        for (Feature feature : shapeFile.getFeatures()) {
             String dlgLoc = feature.getProperties().get("dgl_loc").toString();
             if (location.equals(dlgLoc)) {
                 return feature;
@@ -246,6 +311,16 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         }
         // not found
         return null;
+    }
+
+    @Override
+    public VmsTablePublication getVmsLocationTable() {
+        return vmsLocationTable;
+    }
+
+    @Override
+    public VmsPublication getVmsPublication() {
+        return vmsPublication;
     }
 
     @Override

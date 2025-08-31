@@ -74,4 +74,9 @@ public final class NdwClient implements AutoCloseable {
             return FileResponse.create(response.code(), response.headers().toMultimap(), new byte[0]);
         }
     }
+
+    public FileResponse getVmsPublication() throws IOException {
+        Map<String, String> headers = Map.of(HttpHeaders.ACCEPT_ENCODING, "gzip");
+        return getFile(INdwApi.VMS_PUBLICATION, headers);
+    }
 }

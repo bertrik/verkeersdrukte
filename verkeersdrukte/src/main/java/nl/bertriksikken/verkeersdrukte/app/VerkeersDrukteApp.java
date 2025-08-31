@@ -45,6 +45,9 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
         environment.jersey().register(resource);
         environment.lifecycle().manage(ndwHandler);
 
+        DripResource dripResource = new DripResource(ndwHandler, configuration.getTrafficConfig());
+        environment.jersey().register(dripResource);
+
         // Add headers to each response
         environment.jersey().register((ContainerResponseFilter) this::addHeaders);
     }

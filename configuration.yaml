@@ -4,6 +4,7 @@ ndw:
   timeout: 30
 traffic:
   timeZone: "Europe/Amsterdam"
+  baseUrl: "http://localhost:9002"
 headers: {}
 logging: !<default>
   level: "INFO"

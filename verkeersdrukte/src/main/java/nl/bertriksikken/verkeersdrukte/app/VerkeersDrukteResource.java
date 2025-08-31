@@ -61,7 +61,6 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
 
     @Override
     @GET
-    @Path("/")
     @Produces(MediaType.TEXT_HTML)
     public Response getIndex() {
         InputStream in = getClass().getResourceAsStream("/assets/index.html");
