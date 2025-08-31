@@ -57,7 +57,8 @@
                 .then(response => response.json())
                 .then(dynamic => {
                     var content = header;
-                    var imgHtml = '<img src="data:image/png;base64,' + dynamic.pngData + '" width="400px" />';
+                    content += `<div>Last update: ${dynamic.lastUpdate}</div>`;
+                    var imgHtml = '<img src="data:image/png;base64,' + dynamic.pngData + '" style="width:100%" />';
                     content += `<div style="text-align:center;">` + imgHtml + `</div>`;
                     popup.setContent(content).openOn(map);
                 }).catch(error => {
