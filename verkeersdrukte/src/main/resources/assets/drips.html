@@ -44,7 +44,8 @@
     }
 
     function formatHeader(props) {
-        return `<strong>${props.id}</strong>`;
+        const desc = props.description.replace(/\s*\([0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}\)$/, "");
+        return `<strong>${desc}</strong>`;
     }
 
     // creates the popup with associated click behaviour
