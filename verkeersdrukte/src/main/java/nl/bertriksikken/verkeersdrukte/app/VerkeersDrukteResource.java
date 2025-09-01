@@ -102,11 +102,7 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
     @GET
     @Path(STATIC_PATH + "/{location}")
     public Optional<FeatureCollection.Feature> getStatic(@PathParam("location") String location) {
-        FeatureCollection.Feature feature = handler.getStaticData(location);
-        if (feature != null) {
-            feature = addUrlProperties(feature);
-        }
-        return Optional.ofNullable(feature);
+        return Optional.ofNullable(handler.getStaticData(location)).map(this::addUrlProperties);
     }
 
     @Override
@@ -114,12 +110,7 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
     @Path(DYNAMIC_PATH + "/{location}")
     @CacheControl(maxAge = 1, maxAgeUnit = TimeUnit.MINUTES)
     public Optional<DynamicDataJson> getDynamic(@PathParam("location") String location) {
-        // return snapshot of most recent measurement for location
-        SiteMeasurement siteMeasurement = handler.getDynamicData(location);
-        if (siteMeasurement == null) {
-            return Optional.empty();
-        }
-        return Optional.of(new DynamicDataJson(siteMeasurement));
+        return Optional.ofNullable(handler.getDynamicData(location)).map(DynamicDataJson::new);
     }
 
     @Override
