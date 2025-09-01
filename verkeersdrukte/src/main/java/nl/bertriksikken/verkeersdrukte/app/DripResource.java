@@ -32,7 +32,6 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -94,7 +93,7 @@ public final class DripResource {
             feature.addProperty("type", vmsRecord.type());
             String description = Optional.ofNullable(vmsRecord.vmsDescription())
                     .map(MultilingualString::values)
-                    .map(List::getFirst)
+                    .map(l -> l.isEmpty() ? null : l.get(0))
                     .map(MultilingualStringValue::value)
                     .orElse("");
             feature.addProperty("description", description);
