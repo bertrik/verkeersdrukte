@@ -10,6 +10,8 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import nl.bertriksikken.datex2.MultilingualString;
+import nl.bertriksikken.datex2.MultilingualString.MultilingualStringValue;
 import nl.bertriksikken.datex2.VmsTablePublication;
 import nl.bertriksikken.datex2.VmsUnit.ImageData;
 import nl.bertriksikken.datex2.VmsUnit.VmsImage;
@@ -30,6 +32,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -89,6 +92,12 @@ public final class DripResource {
             feature.addProperty("id", vmsUnitRecord.getId());
             feature.addProperty("physicalMounting", vmsRecord.physicalMounting());
             feature.addProperty("type", vmsRecord.type());
+            String description = Optional.ofNullable(vmsRecord.vmsDescription())
+                    .map(MultilingualString::values)
+                    .map(List::getFirst)
+                    .map(MultilingualStringValue::value)
+                    .orElse("");
+            feature.addProperty("description", description);
         }
         return feature;
     }
@@ -132,7 +141,7 @@ public final class DripResource {
         return new DynamicDataJson(timeLastSet, imageData);
     }
 
-    private final class DynamicDataJson {
+    public final class DynamicDataJson {
         @SuppressWarnings("unused")
         @JsonProperty("lastUpdate")
         final String lastUpdate;

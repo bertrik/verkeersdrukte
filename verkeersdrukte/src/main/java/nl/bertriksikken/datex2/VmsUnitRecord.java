@@ -56,7 +56,8 @@ public final class VmsUnitRecord {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public record VmsRecord(@JacksonXmlProperty(localName = "vmsLocation") VmsLocation vmsLocation,
+    public record VmsRecord(@JacksonXmlProperty(localName = "vmsDescription") MultilingualString vmsDescription,
+                            @JacksonXmlProperty(localName = "vmsLocation") VmsLocation vmsLocation,
                             @JacksonXmlProperty(localName = "vmsType") String type,
                             @JacksonXmlProperty(localName = "vmsPhysicalMounting") String physicalMounting
     ) {
@@ -66,8 +67,8 @@ public final class VmsUnitRecord {
             physicalMounting = Objects.toString(physicalMounting, "");
         }
 
-        public VmsRecord(double latitude, double longitude) {
-            this(new VmsLocation(latitude, longitude), "", "");
+        public VmsRecord(String language, String text, double latitude, double longitude) {
+            this(new MultilingualString(language, text), new VmsLocation(latitude, longitude), "", "");
         }
 
         @JsonIgnoreProperties(ignoreUnknown = true)

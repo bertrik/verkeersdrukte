@@ -23,7 +23,7 @@ public class VmsUnitRecordTest {
     public void testSerialize() throws IOException {
         XmlMapper mapper = VmsTablePublication.createXmlMapper();
         VmsUnitRecord unitRecord = new VmsUnitRecord("id", "version");
-        unitRecord.addVmsRecord(new VmsRecord(1.23, 4.56));
+        unitRecord.addVmsRecord(new VmsRecord("nl", "description", 1.23, 4.56));
         mapper.writerWithDefaultPrettyPrinter().writeValue(System.out, unitRecord);
 
     }
