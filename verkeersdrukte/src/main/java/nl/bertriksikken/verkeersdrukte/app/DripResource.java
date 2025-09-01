@@ -12,6 +12,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import nl.bertriksikken.datex2.MultilingualString;
 import nl.bertriksikken.datex2.MultilingualString.MultilingualStringValue;
+import nl.bertriksikken.datex2.VmsPublication;
 import nl.bertriksikken.datex2.VmsTablePublication;
 import nl.bertriksikken.datex2.VmsUnit.ImageData;
 import nl.bertriksikken.datex2.VmsUnit.VmsImage;
@@ -70,8 +71,10 @@ public final class DripResource {
     @Path(STATIC_PATH)
     public FeatureCollection getStatic() {
         VmsTablePublication vmsLocationTable = handler.getVmsLocationTable();
+        VmsPublication vmsPublication = handler.getVmsPublication();
         FeatureCollection featureCollection = new FeatureCollection();
         vmsLocationTable.getRecords().stream()
+                .filter(l -> vmsPublication.find(l.getId()) != null)
                 .map(this::mapVmsUnitRecord).filter(Objects::nonNull)
                 .map(this::addUrlProperties)
                 .forEach(featureCollection::add);
