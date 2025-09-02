@@ -4,7 +4,7 @@
 <head>
     <title>NL DRIPS</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
     <style>
         #map {
             height: 95vh;
@@ -60,7 +60,7 @@
                     var content = header;
                     content += `<div>Last update: ${dynamic.lastUpdate}</div>`;
                     var imgHtml = '<img src="data:image/png;base64,' + dynamic.pngData +
-                        '" style="border:10px solid black;border-radius:10px;margin-top:10px;" />';
+                        '" style="border:10px solid black;border-radius:10px;margin-top:10px;max-width:100%;" />';
                     content += `<div style="text-align:center;">` + imgHtml + `</div>`;
                     popup.setContent(content).openOn(map);
                 }).catch(error => {
