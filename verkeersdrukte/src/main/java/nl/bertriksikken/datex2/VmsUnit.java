@@ -7,6 +7,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A record from the VmsPublication, containing dynamic display data of a VMS.
@@ -36,6 +37,15 @@ public final class VmsUnit {
 
     public Vms find(int index) {
         return vmsList.stream().filter(vms -> vms.vmsIndex == index).map(VmsWithIndex::vms).findFirst().orElse(null);
+    }
+
+    public boolean hasImageData() {
+        return Optional.ofNullable(find(1))  // VmsUnit.Vms
+                .map(v -> v.find(1))  // VmsMessage
+                .map(VmsUnit.VmsMessage::extension)
+                .map(VmsUnit.VmsMessageExtension::vmsImage)
+                .map(VmsUnit.VmsImage::imageData)
+                .isPresent();
     }
 
     public void addVms(Vms vms) {
@@ -106,4 +116,5 @@ public final class VmsUnit {
             return Base64.getDecoder().decode(binary);
         }
     }
+
 }

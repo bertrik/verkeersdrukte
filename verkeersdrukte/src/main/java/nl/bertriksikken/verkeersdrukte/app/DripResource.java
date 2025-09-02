@@ -74,7 +74,7 @@ public final class DripResource {
         VmsPublication vmsPublication = handler.getVmsPublication();
         FeatureCollection featureCollection = new FeatureCollection();
         vmsLocationTable.getRecords().stream()
-                .filter(l -> vmsPublication.find(l.getId()) != null)
+                .filter(u -> vmsPublication.hasImageDataFor(u.getId()))
                 .map(this::mapVmsUnitRecord).filter(Objects::nonNull)
                 .map(this::addUrlProperties)
                 .forEach(featureCollection::add);

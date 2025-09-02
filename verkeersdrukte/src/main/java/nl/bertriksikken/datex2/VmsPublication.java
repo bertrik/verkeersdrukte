@@ -47,6 +47,11 @@ public final class VmsPublication {
         }
     }
 
+    public boolean hasImageDataFor(String id) {
+        VmsUnit vmsUnit = find(id);
+        return (vmsUnit != null) && vmsUnit.hasImageData();
+    }
+
     private String getPath(JsonParser parser) {
         StringBuilder path = new StringBuilder();
         for (JsonStreamContext ctx = parser.getParsingContext(); ctx != null; ctx = ctx.getParent()) {
