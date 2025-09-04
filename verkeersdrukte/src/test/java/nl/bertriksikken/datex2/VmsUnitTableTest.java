@@ -26,7 +26,7 @@ public final class VmsUnitTableTest {
         List<VmsUnitRecord> records = table.getRecords();
         LOG.info("Got {} records", records.size());
         assertFalse(records.isEmpty());
-        VmsUnitRecord first = records.getFirst();
+        VmsUnitRecord first = records.get(0);
         assertNotNull(first);
     }
 
