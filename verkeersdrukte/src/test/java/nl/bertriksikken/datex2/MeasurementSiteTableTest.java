@@ -18,8 +18,8 @@ public final class MeasurementSiteTableTest {
     @Test
     public void testDeserialize() throws IOException {
         InputStream is = getClass().getResourceAsStream("/MeasurementSiteTable.xml");
-        MeasurementSiteTable mst = new MeasurementSiteTable(Set.of());
-        mst.parse(is);
+        MeasurementSiteTable mst = new MeasurementSiteTable();
+        mst.parse(is, Set.of());
         Assertions.assertFalse(mst.getMeasurementSiteIds().isEmpty());
         LOG.info("Got {} elements", mst.getMeasurementSiteIds().size());
 

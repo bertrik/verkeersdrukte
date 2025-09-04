@@ -39,9 +39,9 @@ public final class Datex2IntegrationTest {
         // initialise MST
         LOG.info("Loading MST ...");
         InputStream mstStream = getClass().getResourceAsStream("/measurement_current.xml.gz");
-        MeasurementSiteTable mst = new MeasurementSiteTable(ids);
+        MeasurementSiteTable mst = new MeasurementSiteTable();
         try (GZIPInputStream gzis = new GZIPInputStream(mstStream)) {
-            mst.parse(gzis);
+            mst.parse(gzis, ids);
         }
         LOG.info("MST has {} records", mst.getMeasurementSiteIds().size());
 

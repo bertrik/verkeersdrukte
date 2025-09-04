@@ -25,11 +25,9 @@ public final class MeasurementSiteTable {
     }
 
     private final Map<String, MeasurementSiteRecord> records = new LinkedHashMap<>();
-    private final Set<String> siteIds;
     private final ObjectReader msrReader;
 
-    public MeasurementSiteTable(Set<String> siteIds) {
-        this.siteIds = Set.copyOf(siteIds);
+    public MeasurementSiteTable() {
         msrReader = createXmlMapper().readerFor(MeasurementSiteRecord.class);
     }
 
@@ -37,7 +35,7 @@ public final class MeasurementSiteTable {
         return new XmlMapper(xmlFactory);
     }
 
-    public void parse(InputStream stream) throws IOException {
+    public void parse(InputStream stream, Set<String> siteIds) throws IOException {
         try (JsonParser parser = xmlFactory.createParser(stream)) {
             for (JsonToken token = parser.nextToken(); token != null; token = parser.nextToken()) {
                 if (token.isStructStart()) {

@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -55,7 +54,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private final MeasurementCache measurementCache;
     private final NdwDownloader ndwDownloader;
     private final ShapeFileDownloader shapeFileDownloader;
-    private MeasurementSiteTable mst = new MeasurementSiteTable(Set.of());
+    private MeasurementSiteTable mst = new MeasurementSiteTable();
 
     private FeatureCollection shapeFile = new FeatureCollection();
     private VmsTablePublication vmsLocationTable = new VmsTablePublication();
@@ -195,8 +194,8 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
                      GZIPInputStream gzis = new GZIPInputStream(fis)) {
                     LOG.info("Parsing MST...");
                     Stopwatch sw = Stopwatch.createStarted();
-                    mst = new MeasurementSiteTable(shapeFileDownloader.getSiteIds());
-                    mst.parse(gzis);
+                    mst = new MeasurementSiteTable();
+                    mst.parse(gzis, shapeFileDownloader.getSiteIds());
                     LOG.info("Parsed MST, {} entries, took {}", mst.getMeasurementSiteIds().size(), sw.elapsed());
                 }
             } else {
