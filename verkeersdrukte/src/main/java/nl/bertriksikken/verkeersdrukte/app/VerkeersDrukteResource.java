@@ -63,7 +63,7 @@ public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
     @GET
     @Produces(MediaType.TEXT_HTML)
     public Response getIndex() {
-        InputStream in = getClass().getResourceAsStream("/assets/index.html");
+        InputStream in = getClass().getResourceAsStream("/assets/traffic.html");
         return Response.ok(in, MediaType.TEXT_HTML).build();
     }
 

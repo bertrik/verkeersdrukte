@@ -114,7 +114,6 @@ public final class DripResource {
     }
 
     @GET
-    @Path("/")
     @Produces(MediaType.TEXT_HTML)
     public Response getIndex() {
         InputStream in = getClass().getResourceAsStream("/assets/drips.html");

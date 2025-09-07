@@ -31,7 +31,7 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
     @Override
     public void initialize(Bootstrap<VerkeersDrukteAppConfig> bootstrap) {
         bootstrap.getObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-        bootstrap.addBundle(new AssetsBundle("/assets/verkeersdrukte.png", "/favicon.ico"));
+        bootstrap.addBundle(new AssetsBundle("/assets/verkeersdrukte.png", "/favicon.png"));
         bootstrap.addBundle(new TrafficSwaggerBundle(VerkeersDrukteResource.class.getPackage().getName()));
     }
 
