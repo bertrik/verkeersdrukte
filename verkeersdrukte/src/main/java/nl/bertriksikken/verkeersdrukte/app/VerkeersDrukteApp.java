@@ -2,7 +2,6 @@ package nl.bertriksikken.verkeersdrukte.app;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import io.dropwizard.assets.AssetsBundle;
 import io.dropwizard.core.Application;
 import io.dropwizard.core.Configuration;
 import io.dropwizard.core.setup.Bootstrap;
@@ -31,8 +30,7 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
     @Override
     public void initialize(Bootstrap<VerkeersDrukteAppConfig> bootstrap) {
         bootstrap.getObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-        bootstrap.addBundle(new AssetsBundle("/assets/verkeersdrukte.png", "/favicon.png"));
-        bootstrap.addBundle(new TrafficSwaggerBundle(VerkeersDrukteResource.class.getPackage().getName()));
+        bootstrap.addBundle(new TrafficSwaggerBundle(TrafficResource.class.getPackage().getName()));
     }
 
     @Override
@@ -40,9 +38,9 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
         headers = configuration.getHeaders();
 
         TrafficHandler ndwHandler = new TrafficHandler(configuration);
-        VerkeersDrukteResource resource = new VerkeersDrukteResource(ndwHandler, configuration.getTrafficConfig());
+        TrafficResource trafficResource = new TrafficResource(ndwHandler, configuration.getTrafficConfig());
         environment.healthChecks().register("ndw", new VerkeersDrukteHealthCheck(ndwHandler));
-        environment.jersey().register(resource);
+        environment.jersey().register(trafficResource);
         environment.lifecycle().manage(ndwHandler);
 
         DripResource dripResource = new DripResource(ndwHandler, configuration.getTrafficConfig());

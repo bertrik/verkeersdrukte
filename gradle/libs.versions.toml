@@ -21,7 +21,6 @@ retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit
 retrofit-jackson = { module = "com.squareup.retrofit2:converter-jackson", version.ref = "retrofit" }
 retrofit-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "retrofit" }
 
-dropwizard-assets = { module = "io.dropwizard:dropwizard-assets", version.ref = "dropwizard" }
 dropwizard-core = { module = "io.dropwizard:dropwizard-core", version.ref = "dropwizard" }
 dropwizard-swagger = { module = "com.smoketurner:dropwizard-swagger", version = "4.0.5-1" }
 

@@ -38,30 +38,23 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@Path(VerkeersDrukteResource.TRAFFIC_PATH)
+@Path(TrafficResource.TRAFFIC_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Singleton
-public final class VerkeersDrukteResource implements IVerkeersDrukteResource {
+public final class TrafficResource extends BaseResource implements ITrafficResource {
     static final String TRAFFIC_PATH = "/traffic";
     static final String STATIC_PATH = "/static";
     static final String DYNAMIC_PATH = "/dynamic";
-    private static final Logger LOG = LoggerFactory.getLogger(VerkeersDrukteResource.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TrafficResource.class);
     private static final ObjectMapper mapper = new ObjectMapper();
-
-    private final ITrafficHandler handler;
     private final AtomicInteger atomicInteger = new AtomicInteger();
 
-    private final TrafficConfig config;
-
-    VerkeersDrukteResource(ITrafficHandler handler, TrafficConfig config) {
-        this.handler = handler;
-        this.config = config;
+    TrafficResource(ITrafficHandler handler, TrafficConfig config) {
+        super(handler, config);
         mapper.findAndRegisterModules();
     }
 
     @Override
-    @GET
-    @Produces(MediaType.TEXT_HTML)
     public Response getIndex() {
         InputStream in = getClass().getResourceAsStream("/assets/traffic.html");
         return Response.ok(in, MediaType.TEXT_HTML).build();

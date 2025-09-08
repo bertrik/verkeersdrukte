@@ -9,7 +9,6 @@ dependencies {
     implementation libs.bundles.jackson
 
     implementation libs.dropwizard.core
-    implementation libs.dropwizard.assets
     implementation libs.dropwizard.swagger
     implementation libs.jdbf
     implementation libs.jersey.media.sse

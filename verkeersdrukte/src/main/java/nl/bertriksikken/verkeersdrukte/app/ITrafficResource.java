@@ -26,7 +26,7 @@ import java.util.Optional;
                 @Tag(name = "static", description = "location data"),
                 @Tag(name = "dynamic", description = "traffic data, intensity (vehicles/hour) and speed (km/hour)")
         })
-public interface IVerkeersDrukteResource {
+public interface ITrafficResource {
     @Operation(hidden = true)
     Response getIndex();
 
@@ -37,7 +37,7 @@ public interface IVerkeersDrukteResource {
     Optional<FeatureCollection.Feature> getStatic(@PathParam("location") String location);
 
     @Operation(summary = "Get dynamic traffic data for a specific location", tags = {"dynamic"})
-    Optional<VerkeersDrukteResource.DynamicDataJson> getDynamic(@PathParam("location") String location);
+    Optional<TrafficResource.DynamicDataJson> getDynamic(@PathParam("location") String location);
 
     @Operation(summary = "Get event stream with dynamic traffic data for a specific location", tags = {"dynamic"})
     void getTrafficEvents(@Context Sse sse, @Context SseEventSink sseEventSink, @PathParam("location") String location);

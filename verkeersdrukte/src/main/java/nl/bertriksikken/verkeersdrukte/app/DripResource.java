@@ -40,18 +40,20 @@ import java.util.concurrent.TimeUnit;
 @Path(DripResource.PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Singleton
-public final class DripResource {
+public final class DripResource extends BaseResource {
 
     public static final String PATH = "/drips";
     static final String STATIC_PATH = "/static";
     static final String DYNAMIC_PATH = "/dynamic";
 
-    private final ITrafficHandler handler;
-    private final TrafficConfig config;
-
     DripResource(ITrafficHandler handler, TrafficConfig config) {
-        this.handler = handler;
-        this.config = config;
+        super(handler, config);
+    }
+
+    @Override
+    public Response getIndex() {
+        InputStream in = getClass().getResourceAsStream("/assets/drips.html");
+        return Response.ok(in, MediaType.TEXT_HTML).build();
     }
 
     private FeatureCollection.Feature addUrlProperties(FeatureCollection.Feature f) {
@@ -113,12 +115,6 @@ public final class DripResource {
         return Optional.ofNullable(mapVmsUnitRecord(vmsUnitRecord));
     }
 
-    @GET
-    @Produces(MediaType.TEXT_HTML)
-    public Response getIndex() {
-        InputStream in = getClass().getResourceAsStream("/assets/drips.html");
-        return Response.ok(in, MediaType.TEXT_HTML).build();
-    }
 
     @Operation(summary = "Get dynamic data for a specific DRIP", tags = {"dynamic"})
     @GET
