@@ -115,27 +115,35 @@ public final class DripResource extends BaseResource {
         return Optional.ofNullable(mapVmsUnitRecord(vmsUnitRecord));
     }
 
-
     @Operation(summary = "Get dynamic data for a specific DRIP", tags = {"dynamic"})
     @GET
     @Path(DYNAMIC_PATH + "/{id}")
     @CacheControl(maxAge = 1, maxAgeUnit = TimeUnit.MINUTES)
     public Optional<DynamicDataJson> getDynamic(@PathParam("id") String id) {
-        return Optional.ofNullable(handler.getVmsPublication())
-                .map(pub -> pub.find(id))   // VmsUnit
-                .map(u -> u.find(1))  // VmsUnit.Vms
-                .map(v -> v.find(1))  // VmsMessage
-                .map(this::mapVmsMessage);  // build DynamicDataJson
+        return findVmsMessage(id)
+                .map(VmsMessage::timeLastSet)
+                .map(Instant::parse)
+                .map(DynamicDataJson::new);// build DynamicDataJson
     }
 
-    private DynamicDataJson mapVmsMessage(VmsMessage vmsMessage) {
-        Instant timeLastSet = Instant.parse(vmsMessage.timeLastSet());
-        byte[] imageData = Optional.of(vmsMessage)
+    @Operation(summary = "Get image data for a specific DRIP", tags = {"dynamic"})
+    @GET
+    @Path(DYNAMIC_PATH + "/{id}/image")
+    @Produces("image/png")
+    @CacheControl(maxAge = 1, maxAgeUnit = TimeUnit.MINUTES)
+    public Optional<byte[]> getDynamicImage(@PathParam("id") String id) {
+        return findVmsMessage(id)
                 .map(VmsMessage::extension)
                 .map(VmsMessageExtension::vmsImage)
                 .map(VmsImage::imageData)
-                .map(ImageData::asBytes).orElse(new byte[0]);
-        return new DynamicDataJson(timeLastSet, imageData);
+                .map(ImageData::asBytes);
+    }
+
+    private Optional<VmsMessage> findVmsMessage(String id) {
+        return Optional.ofNullable(handler.getVmsPublication())
+                .map(pub -> pub.find(id))   // VmsUnit
+                .map(u -> u.find(1))  // VmsUnit.Vms
+                .map(v -> v.find(1));  // VmsMessage
     }
 
     public final class DynamicDataJson {
@@ -143,14 +151,9 @@ public final class DripResource extends BaseResource {
         @JsonProperty("lastUpdate")
         final String lastUpdate;
 
-        @SuppressWarnings("unused")
-        @JsonProperty("pngData")
-        final byte[] imageData;
-
-        DynamicDataJson(Instant instant, byte[] data) {
+        DynamicDataJson(Instant instant) {
             OffsetDateTime offsetDateTime = OffsetDateTime.ofInstant(instant.truncatedTo(ChronoUnit.SECONDS), config.getTimeZone());
             lastUpdate = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(offsetDateTime);
-            imageData = data.clone();
         }
     }
 
