@@ -6,9 +6,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
     <link rel="icon" type="image/png" href="/drips/favicon.png">
     <style>
-        #map {
-            height: 95vh;
-        }
+        body { margin: 0; }
+        #map { height: 100vh; }
     </style>
 </head>
 
@@ -17,7 +16,7 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
     // Initialize the map
-    const map = L.map('map').setView([52, 4.7], 11);
+    const map = L.map('map').setView([52.25, 5.64, 4.7], 8);
 
     // Add a tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
