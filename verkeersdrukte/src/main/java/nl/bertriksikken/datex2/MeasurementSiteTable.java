@@ -1,7 +1,6 @@
 package nl.bertriksikken.datex2;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.xml.XmlFactory;
@@ -39,7 +38,7 @@ public final class MeasurementSiteTable {
         try (JsonParser parser = xmlFactory.createParser(stream)) {
             for (JsonToken token = parser.nextToken(); token != null; token = parser.nextToken()) {
                 if (token.isStructStart()) {
-                    String xpath = getPath(parser);
+                    String xpath = XmlUtil.getPath(parser);
                     if (xpath.endsWith("/measurementSiteTable/measurementSiteRecord")) {
                         MeasurementSiteRecord record = msrReader.readValue(parser);
                         if (siteIds.isEmpty() || siteIds.contains(record.id())) {
@@ -49,17 +48,6 @@ public final class MeasurementSiteTable {
                 }
             }
         }
-    }
-
-    private String getPath(JsonParser parser) {
-        StringBuilder path = new StringBuilder();
-        for (JsonStreamContext ctx = parser.getParsingContext(); ctx != null; ctx = ctx.getParent()) {
-            String name = ctx.getCurrentName();
-            if (name != null) {
-                path.insert(0, "/" + name);
-            }
-        }
-        return path.toString();
     }
 
     public Set<String> getMeasurementSiteIds() {

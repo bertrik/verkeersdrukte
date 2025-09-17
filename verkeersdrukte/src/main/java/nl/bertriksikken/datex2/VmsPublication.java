@@ -1,7 +1,6 @@
 package nl.bertriksikken.datex2;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -37,7 +36,7 @@ public final class VmsPublication {
         try (JsonParser parser = xmlMapper.createParser(stream)) {
             for (JsonToken token = parser.nextToken(); token != null; token = parser.nextToken()) {
                 if (token.isStructStart()) {
-                    String xpath = getPath(parser);
+                    String xpath = XmlUtil.getPath(parser);
                     if (xpath.endsWith("/payloadPublication/vmsUnit")) {
                         VmsUnit record = recordReader.readValue(parser);
                         records.put(record.getId(), record);
@@ -50,17 +49,6 @@ public final class VmsPublication {
     public boolean hasImageDataFor(String id) {
         VmsUnit vmsUnit = find(id);
         return (vmsUnit != null) && vmsUnit.hasImageData();
-    }
-
-    private String getPath(JsonParser parser) {
-        StringBuilder path = new StringBuilder();
-        for (JsonStreamContext ctx = parser.getParsingContext(); ctx != null; ctx = ctx.getParent()) {
-            String name = ctx.getCurrentName();
-            if (name != null) {
-                path.insert(0, "/" + name);
-            }
-        }
-        return path.toString();
     }
 
 }
