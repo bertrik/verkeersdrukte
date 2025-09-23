@@ -1,5 +1,5 @@
 [versions]
-dropwizard = "4.0.16"
+dropwizard = "5.0.0"
 errorprone = "2.42.0"
 jackson = "2.20.0"
 jdbf = "2.2.4"
