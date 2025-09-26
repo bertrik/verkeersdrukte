@@ -1,7 +1,7 @@
 plugins {
-    alias libs.plugins.dependencycheck
-    alias libs.plugins.errorprone
-    alias libs.plugins.versions
+    alias(libs.plugins.dependencycheck)
+    alias(libs.plugins.errorprone)
+    alias(libs.plugins.versions)
 }
 
 def isNonStable = { String version ->
@@ -14,43 +14,46 @@ dependencyCheck {
     scanConfigurations = ['runtimeClasspath']
 }
 
-subprojects {
-    apply plugin: "java"
-    apply plugin: 'com.github.ben-manes.versions'
-    apply plugin: 'net.ltgt.errorprone'
-
-    java {
-        targetCompatibility = JavaVersion.VERSION_17
-        sourceCompatibility = JavaVersion.VERSION_17
+// Disable parallel execution only when running dependencyUpdates
+gradle.taskGraph.whenReady { graph ->
+    if (graph.hasTask(":dependencyUpdates")) {
+        gradle.startParameter.parallelProjectExecutionEnabled = false
     }
+}
 
+allprojects {
     repositories {
         mavenCentral()
     }
 
-    // Reject all non stable versions in dependency check
-    tasks.named("dependencyUpdates").configure {
-        rejectVersionIf {
-            isNonStable(it.candidate.version)
+    plugins.apply("java")
+    plugins.apply("com.github.ben-manes.versions")
+    plugins.apply("net.ltgt.errorprone")
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
         }
+    }
+
+    dependencies {
+        errorprone(libs.errorprone.core)
+        compileOnly(libs.errorprone.annotations)
+
+        testImplementation(platform(libs.junit.bom))
+        testImplementation(libs.junit.jupiter)
+        testRuntimeOnly(libs.junit.platform.launcher)
+    }
+
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
     }
 
     tasks.withType(Tar).configureEach {
         preserveFileTimestamps = true
     }
 
-    test {
-        useJUnitPlatform()
-    }
-
-    // Standard libraries added to all projects
-    dependencies {
-        errorprone(libs.errorprone.core)
-        compileOnly libs.errorprone.annotations
-
-        testImplementation(platform(libs.junit.bom))
-        testImplementation libs.junit.jupiter
-        testRuntimeOnly libs.junit.platform.launcher
+    tasks.named("dependencyUpdates").configure {
+        rejectVersionIf { isNonStable(it.candidate.version) }
     }
 }
-
