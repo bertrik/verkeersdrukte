@@ -54,7 +54,13 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
         headers.forEach((header, value) -> responseContext.getHeaders().add(header, value));
     }
 
+    private static void handleUncaughtException(Thread thread, Throwable throwable) {
+        LOG.error("Caught exception in thread, exiting...", throwable);
+        System.exit(1);
+    }
+
     public static void main(String[] args) throws Exception {
+        Thread.setDefaultUncaughtExceptionHandler(VerkeersDrukteApp::handleUncaughtException);
         File configFile = new File(CONFIG_FILE);
         if (!configFile.exists()) {
             LOG.info("Config file not found, creating default");

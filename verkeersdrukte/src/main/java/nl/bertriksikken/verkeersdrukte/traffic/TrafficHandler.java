@@ -90,6 +90,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
                 action.run();
             } catch (Throwable e) {
                 LOG.warn("Caught throwable in scheduled task", e);
+                throw e;
             }
         };
         executor.schedule(runnable, delay.toMillis(), TimeUnit.MILLISECONDS);
