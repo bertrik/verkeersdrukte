@@ -74,6 +74,7 @@ public final class NdwDownloader implements AutoCloseable {
                 }
                 case 304 -> {
                     // we already have the file in our cache, do nothing
+                    LOG.info("File '{}' already cached (etag {})", name, etag);
                 }
                 default -> LOG.warn("Failed to download '{}': {}", name, response);
             }
@@ -110,7 +111,7 @@ public final class NdwDownloader implements AutoCloseable {
         private final Map<String, CacheEntry> entries = new LinkedHashMap<>();
 
         CacheEntry get(String name) {
-            return entries.getOrDefault(name, new CacheEntry( "", ""));
+            return entries.getOrDefault(name, new CacheEntry("", ""));
         }
 
         void put(String name, CacheEntry entry) {

@@ -39,15 +39,15 @@ public final class NdwClient implements AutoCloseable {
         return new NdwClient(client, restApi);
     }
 
+    private static okhttp3.Response addUserAgent(Interceptor.Chain chain) throws IOException {
+        Request userAgentRequest = chain.request().newBuilder().header(HttpHeader.USER_AGENT.asString(), USER_AGENT).build();
+        return chain.proceed(userAgentRequest);
+    }
+
     @Override
     public void close() {
         httpClient.dispatcher().executorService().shutdown();
         httpClient.connectionPool().evictAll();
-    }
-
-    private static okhttp3.Response addUserAgent(Interceptor.Chain chain) throws IOException {
-        Request userAgentRequest = chain.request().newBuilder().header(HttpHeader.USER_AGENT.asString(), USER_AGENT).build();
-        return chain.proceed(userAgentRequest);
     }
 
     public FileResponse getTrafficSpeed() throws IOException {
@@ -68,9 +68,13 @@ public final class NdwClient implements AutoCloseable {
     FileResponse getFile(String name, Map<String, String> headers) throws IOException {
         Response<ResponseBody> response = restApi.downloadFile(name, headers).execute();
         if (response.isSuccessful()) {
-            return FileResponse.create(response.code(), response.headers().toMultimap(), response.body().bytes());
+            try (ResponseBody body = response.body()) {
+                return FileResponse.create(response.code(), response.headers().toMultimap(), body.bytes());
+            }
         } else {
-            LOG.warn("getFile('{}') failed, code {}: '{}'", name, response.code(), response.message());
+            if (response.code() > 400) {
+                LOG.warn("getFile('{}') failed, code {}: '{}'", name, response.code(), response.message());
+            }
             return FileResponse.create(response.code(), response.headers().toMultimap(), new byte[0]);
         }
     }
