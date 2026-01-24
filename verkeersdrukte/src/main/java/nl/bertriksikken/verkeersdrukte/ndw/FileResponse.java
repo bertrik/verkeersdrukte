@@ -21,8 +21,12 @@ public final class FileResponse {
         this.contents = contents;
     }
 
-    public static FileResponse create(int code, Map<String, List<String>> headers, byte[] contents) {
+    public static FileResponse withBody(int code, Map<String, List<String>> headers, byte[] contents) {
         return new FileResponse(code, headers, contents);
+    }
+
+    public static FileResponse create(int code, Map<String, List<String>> headers) {
+        return new FileResponse(code, headers, new byte[0]);
     }
 
     public int getCode() {

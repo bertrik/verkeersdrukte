@@ -12,7 +12,11 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Map;
 import java.util.Objects;
 
@@ -69,14 +73,31 @@ public final class NdwClient implements AutoCloseable {
         Response<ResponseBody> response = restApi.downloadFile(name, headers).execute();
         if (response.isSuccessful()) {
             try (ResponseBody body = response.body()) {
-                return FileResponse.create(response.code(), response.headers().toMultimap(), body.bytes());
+                return FileResponse.withBody(response.code(), response.headers().toMultimap(), body.bytes());
             }
         } else {
             if (response.code() > 400) {
                 LOG.warn("getFile('{}') failed, code {}: '{}'", name, response.code(), response.message());
             }
-            return FileResponse.create(response.code(), response.headers().toMultimap(), new byte[0]);
+            return FileResponse.create(response.code(), response.headers().toMultimap());
         }
+    }
+
+    /** Fetches the remote file, streams it to disk, returns response with http response code and headers */
+    FileResponse getFile(String name, Map<String, String> headers, File file) throws IOException {
+        Response<ResponseBody> response = restApi.downloadFileStreaming(name, headers).execute();
+        if (response.isSuccessful()) {
+            try (ResponseBody body = response.body();
+                 InputStream in = body.byteStream();
+                 OutputStream out = new FileOutputStream(file)) {
+                in.transferTo(out);
+            }
+        } else {
+            if (response.code() > 400) {
+                LOG.warn("getFile('{}') failed, code {}: '{}'", name, response.code(), response.message());
+            }
+        }
+        return FileResponse.create(response.code(), response.headers().toMultimap());
     }
 
     public FileResponse getVmsPublication() throws IOException {

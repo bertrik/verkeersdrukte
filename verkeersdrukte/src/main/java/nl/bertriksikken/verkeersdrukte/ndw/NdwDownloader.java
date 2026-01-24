@@ -60,13 +60,9 @@ public final class NdwDownloader implements AutoCloseable {
         headers.put(HttpHeaders.IF_NONE_MATCH, etag);
         headers.put(HttpHeaders.ACCEPT_ENCODING, "gzip");
         try {
-            FileResponse response = client.getFile(name, headers);
+            FileResponse response = client.getFile(name, headers, file);
             switch (response.getCode()) {
                 case 200 -> {
-                    // save file to file system
-                    try (FileOutputStream fos = new FileOutputStream(file)) {
-                        fos.write(response.getContents());
-                    }
                     // update our cache
                     cacheEntry = cacheEntry.update(response.getEtag(), response.getLastModified());
                     cacheIndex.put(name, cacheEntry);

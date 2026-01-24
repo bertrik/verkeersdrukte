@@ -13,7 +13,7 @@ public final class FileResponseTest {
     public void test() {
         byte[] contents = new byte[]{1, 2, 3};
         Map<String, List<String>> headers = Map.of("Last-Modified", List.of("Tue, 3 Jun 2008 11:05:30 GMT"));
-        FileResponse response = FileResponse.create(200, headers, contents);
+        FileResponse response = FileResponse.withBody(200, headers, contents);
 
         Assertions.assertArrayEquals(contents, response.getContents());
         Instant lastModified = response.getLastModified();
