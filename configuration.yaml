@@ -23,6 +23,8 @@ server: !<default>
   applicationConnectors:
     - type: http
       port: 9002
+  gzip:
+    enabled: true
   requestLog:
     appenders:
       - type: file
