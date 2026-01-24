@@ -3,17 +3,20 @@ package nl.bertriksikken.datex2;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonStreamContext;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 public final class XmlUtil {
 
     public static String getPath(JsonParser parser) {
-        StringBuilder path = new StringBuilder();
+        Deque<String> parts = new ArrayDeque<>();
         for (JsonStreamContext ctx = parser.getParsingContext(); ctx != null; ctx = ctx.getParent()) {
             String name = ctx.getCurrentName();
             if (name != null) {
-                path.insert(0, "/" + name);
+                parts.push(name);
             }
         }
-        return path.toString();
+        return "/" + String.join("/", parts);
     }
 
 }
