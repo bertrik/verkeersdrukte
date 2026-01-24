@@ -31,6 +31,7 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -74,7 +75,8 @@ public final class TrafficResource extends BaseResource implements ITrafficResou
 
     private FeatureCollection.Feature addUrlProperties(FeatureCollection.Feature f) {
         FeatureCollection.Feature feature = new FeatureCollection.Feature(f);
-        String location = (String) f.getProperties().getOrDefault("dgl_loc", "");
+        Map<String, Object> properties = f.getProperties();
+        String location = (String) properties.getOrDefault("dgl_loc", "");
         if (!location.isEmpty()) {
             String staticDataUrl = config.getBaseUrl() + TRAFFIC_PATH + STATIC_PATH + "/" + location;
             feature.addProperty("staticDataUrl", staticDataUrl);
@@ -82,12 +84,23 @@ public final class TrafficResource extends BaseResource implements ITrafficResou
             feature.addProperty("dynamicDataUrl", dynamicDataUrl);
             // streetview, see https://stackoverflow.com/questions/387942/google-street-view-url
             FeatureCollection.PointGeometry geometry = (FeatureCollection.PointGeometry) feature.getGeometry();
-            int angle = Integer.parseInt((String) f.getProperties().getOrDefault("meetricht", 0));
+            int angle = parseIntProperty(properties, "meetricht",0);
             String streetviewUrl = String.format(Locale.ROOT, "https://maps.google.com/maps?layer=c&cbll=%.6f,%.6f&cbp=12,%d,0,0,0",
                     geometry.getLatitude(), geometry.getLongitude(), angle);
             feature.addProperty("streetviewUrl", streetviewUrl);
         }
         return feature;
+    }
+
+    private int parseIntProperty(Map<String, Object> properties, String name, int defaultValue) {
+        if (properties.get(name) instanceof String string) {
+            try {
+                return Integer.parseInt(string);
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+        return defaultValue;
     }
 
     @Override
