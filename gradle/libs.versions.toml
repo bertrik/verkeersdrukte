@@ -1,7 +1,7 @@
 [versions]
-dropwizard = "5.0.0"
-errorprone = "2.46.0"
-jackson = "2.20.1"
+dropwizard = "5.0.1"
+errorprone = "2.47.0"
+jackson = "2.21.0"
 jdbf = "2.2.4"
 jersey_media_sse = "3.1.11"
 junit = "6.0.2"
