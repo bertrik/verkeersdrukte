@@ -39,6 +39,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.zip.GZIPInputStream;
@@ -48,7 +49,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private static final Logger LOG = LoggerFactory.getLogger(TrafficHandler.class);
 
     private final Map<String, INotifyData> subscriptions = new ConcurrentHashMap<>();
-    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService executor;
     private final XmlMapper xmlMapper = new XmlMapper();
     private final NdwClient ndwClient;
     private final MeasurementCache measurementCache;
@@ -60,11 +61,12 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private VmsTablePublication vmsLocationTable = new VmsTablePublication();
     private VmsPublication vmsPublication;
 
-    public TrafficHandler(VerkeersDrukteAppConfig config) {
+    public TrafficHandler(VerkeersDrukteAppConfig config, ThreadFactory tf) {
         ndwClient = NdwClient.create(config.getNdwConfig());
         measurementCache = new MeasurementCache(config.getTrafficConfig().getExpiryDuration());
         ndwDownloader = new NdwDownloader(config.getNdwConfig());
         shapeFileDownloader = new ShapeFileDownloader(config.getTrafficConfig().getShapeFileFolder(), ndwDownloader);
+        executor = Executors.newSingleThreadScheduledExecutor(tf);
     }
 
     @Override

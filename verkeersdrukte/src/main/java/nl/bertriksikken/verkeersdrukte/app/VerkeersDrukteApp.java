@@ -27,6 +27,20 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
     private VerkeersDrukteApp() {
     }
 
+    public static void main(String[] args) throws Exception {
+        File configFile = new File(CONFIG_FILE);
+        if (!configFile.exists()) {
+            LOG.info("Config file not found, creating default");
+            YAMLMapper mapper = new YAMLMapper();
+            mapper.findAndRegisterModules();
+            VerkeersDrukteAppConfig config = new VerkeersDrukteAppConfig();
+            mapper.writeValue(configFile, config);
+        }
+
+        VerkeersDrukteApp app = new VerkeersDrukteApp();
+        app.run("server", CONFIG_FILE);
+    }
+
     @Override
     public void initialize(Bootstrap<VerkeersDrukteAppConfig> bootstrap) {
         bootstrap.getObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
@@ -37,7 +51,7 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
     public void run(VerkeersDrukteAppConfig configuration, Environment environment) {
         headers = configuration.getHeaders();
 
-        TrafficHandler ndwHandler = new TrafficHandler(configuration);
+        TrafficHandler ndwHandler = new TrafficHandler(configuration, this::newThread);
         TrafficResource trafficResource = new TrafficResource(ndwHandler, configuration.getTrafficConfig());
         environment.healthChecks().register("ndw", new VerkeersDrukteHealthCheck(ndwHandler));
         environment.jersey().register(trafficResource);
@@ -54,24 +68,13 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
         headers.forEach((header, value) -> responseContext.getHeaders().add(header, value));
     }
 
-    private static void handleUncaughtException(Thread thread, Throwable throwable) {
-        LOG.error("Caught exception in thread, exiting...", throwable);
-        System.exit(1);
-    }
-
-    public static void main(String[] args) throws Exception {
-        Thread.setDefaultUncaughtExceptionHandler(VerkeersDrukteApp::handleUncaughtException);
-        File configFile = new File(CONFIG_FILE);
-        if (!configFile.exists()) {
-            LOG.info("Config file not found, creating default");
-            YAMLMapper mapper = new YAMLMapper();
-            mapper.findAndRegisterModules();
-            VerkeersDrukteAppConfig config = new VerkeersDrukteAppConfig();
-            mapper.writeValue(configFile, config);
-        }
-
-        VerkeersDrukteApp app = new VerkeersDrukteApp();
-        app.run("server", CONFIG_FILE);
+    private Thread newThread(Runnable r) {
+        Thread thread = new Thread(r);
+        thread.setUncaughtExceptionHandler((thr, throwable) -> {
+            LOG.error("Caught exception in thread, exiting...", throwable);
+            System.exit(1);
+        });
+        return thread;
     }
 
     private static final class TrafficSwaggerBundle extends SwaggerBundle<Configuration> {
