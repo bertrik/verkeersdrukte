@@ -10,8 +10,7 @@ import nl.bertriksikken.datex2.MeasurementSiteRecord;
 import nl.bertriksikken.datex2.MeasurementSiteRecord.MeasurementSpecificCharacteristicsElement;
 import nl.bertriksikken.datex2.MeasurementSiteTable;
 import nl.bertriksikken.datex2.SiteMeasurements;
-import nl.bertriksikken.datex2.VmsPublication;
-import nl.bertriksikken.datex2.VmsTablePublication;
+import nl.bertriksikken.datex2v3.VmsPayload;
 import nl.bertriksikken.geojson.FeatureCollection;
 import nl.bertriksikken.geojson.FeatureCollection.Feature;
 import nl.bertriksikken.verkeersdrukte.app.VerkeersDrukteAppConfig;
@@ -57,8 +56,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private MeasurementSiteTable mst = new MeasurementSiteTable();
 
     private FeatureCollection shapeFile = new FeatureCollection();
-    private VmsTablePublication vmsLocationTable = new VmsTablePublication();
-    private VmsPublication vmsPublication;
+    private VmsPayload vmsPayload;
 
     public TrafficHandler(VerkeersDrukteAppConfig config) {
         ndwClient = NdwClient.create(config.getNdwConfig());
@@ -132,11 +130,11 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         LOG.info("Download VMS publication");
         Instant next;
         try {
-            FileResponse response = ndwClient.getVmsPublication();
+            FileResponse response = ndwClient.getVmsPayload();
             Duration age = Duration.between(response.getLastModified(), Instant.now());
             next = response.getLastModified().plusSeconds(65);
             LOG.info("Got data, {} bytes, age {}", response.getContents().length, age);
-            decodeVmsPublication(new ByteArrayInputStream(response.getContents()));
+            vmsPayload = decodeVmsPublication(new ByteArrayInputStream(response.getContents()));
         } catch (IOException e) {
             LOG.warn("Download VMS failed", e);
             next = Instant.now().plusSeconds(60);
@@ -151,30 +149,9 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         schedule(this::downloadVmsPublication, interval);
 
         notifyClients();
-
     }
 
     private void downloadShapeFileMst() {
-        // get VMS location table
-        LOG.info("Fetching VMS location table...");
-        try {
-            File file = ndwDownloader.fetchFile(INdwApi.VMS_LOCATION_TABLE);
-            if (file != null) {
-                try (GZIPInputStream gzis = new GZIPInputStream(new FileInputStream(file))) {
-                    LOG.info("Parsing VMS location table...");
-                    Stopwatch sw = Stopwatch.createStarted();
-                    VmsTablePublication vmsTablePublication = new VmsTablePublication();
-                    vmsTablePublication.parse(gzis);
-                    LOG.info("Parsed VMS location table, {} entries, took {}", vmsTablePublication.getRecords().size(), sw.elapsed());
-                    vmsLocationTable = vmsTablePublication;
-                }
-            } else {
-                LOG.warn("VMS location table downloaded");
-            }
-        } catch (IOException e) {
-            LOG.warn("VMS location table download failed: {}", e.getMessage());
-        }
-
         // get shape file
         LOG.info("Fetching shapefile...");
         try {
@@ -225,15 +202,15 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         }
     }
 
-    private void decodeVmsPublication(InputStream inputStream) throws IOException {
-        VmsPublication publication = new VmsPublication(xmlMapper);
+    private VmsPayload decodeVmsPublication(InputStream inputStream) throws IOException {
+        VmsPayload payload = new VmsPayload();
         try (GZIPInputStream gzis = new GZIPInputStream(inputStream)) {
             LOG.info("Parsing VmsPublication...");
             Stopwatch sw = Stopwatch.createStarted();
-            publication.parse(gzis);
-            LOG.info("Parsed VmsPublication, {} entries, took {}", publication.getRecords().size(), sw.elapsed());
-            vmsPublication = publication;
+            payload.parse(gzis);
+            LOG.info("Parsed VmsPublication, {} entries, took {}", payload.getStatuses().size(), sw.elapsed());
         }
+        return payload;
     }
 
     /**
@@ -314,13 +291,8 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     }
 
     @Override
-    public VmsTablePublication getVmsLocationTable() {
-        return vmsLocationTable;
-    }
-
-    @Override
-    public VmsPublication getVmsPublication() {
-        return vmsPublication;
+    public VmsPayload getVmsPayload() {
+        return vmsPayload;
     }
 
     @Override

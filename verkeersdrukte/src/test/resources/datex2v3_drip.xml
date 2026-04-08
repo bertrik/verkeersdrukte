@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mc:messageContainer xmlns:vms="http://datex2.eu/schema/3/vms" xmlns:mc="http://datex2.eu/schema/3/messageContainer" xmlns:nlxe="http://datex2.eu/schema/3/nlxExtensions" xmlns:inf="http://datex2.eu/schema/3/informationManagement" xmlns:vmsx="http://datex2.eu/schema/3/vmsExtension" xmlns:ex="http://datex2.eu/schema/3/exchangeInformation" xmlns:loc="http://datex2.eu/schema/3/locationReferencing" xmlns:com="http://datex2.eu/schema/3/common" modelBaseVersion="3">
+    <mc:payload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="vms:VmsTablePublication" lang="nl" modelBaseVersion="3">
+        <com:publicationTime>2026-04-05T09:43:00.001307245Z</com:publicationTime>
+        <com:publicationCreator>
+            <com:country>nl</com:country>
+            <com:nationalIdentifier>NDWNL</com:nationalIdentifier>
+        </com:publicationCreator>
+        <vms:headerInformation>
+            <com:confidentiality>noRestriction</com:confidentiality>
+            <com:informationStatus>real</com:informationStatus>
+        </vms:headerInformation>
+        <vms:vmsControllerTable id="NDW01_VMS_DRIP" version="latest">
+            <vms:vmsController id="NDW02_000a1b70-927f-338d-87c0-1504bf1bbf6f" version="8">
+                <vms:numberOfVms>1</vms:numberOfVms>
+                <vms:vms vmsIndex="0">
+                    <vms:vms>
+                        <vms:description>
+                            <com:values>
+                                <com:value lang="nl">A7-Li-18,8 (dBD146)</com:value>
+                            </com:values>
+                        </vms:description>
+                        <vms:physicalSupport>roadsideMounted</vms:physicalSupport>
+                        <vms:vmsType>colourGraphic</vms:vmsType>
+                        <vms:vmsConfiguration>
+                            <vms:numberOfDisplayAreas>1</vms:numberOfDisplayAreas>
+                        </vms:vmsConfiguration>
+                        <vms:vmsLocation xsi:type="loc:PointLocation">
+                            <loc:supplementaryPositionalDescription>
+                                <loc:carriageway>
+                                    <loc:carriageway>mainCarriageway</loc:carriageway>
+                                </loc:carriageway>
+                            </loc:supplementaryPositionalDescription>
+                            <loc:pointByCoordinates>
+                                <loc:bearing>200</loc:bearing>
+                                <loc:pointCoordinates>
+                                    <loc:latitude>52.547028</loc:latitude>
+                                    <loc:longitude>4.956807</loc:longitude>
+                                </loc:pointCoordinates>
+                            </loc:pointByCoordinates>
+                        </vms:vmsLocation>
+                    </vms:vms>
+                </vms:vms>
+            </vms:vmsController>
+        </vms:vmsControllerTable>
+    </mc:payload>
+    <mc:payload xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="vms:VmsPublication" lang="nl" modelBaseVersion="3">
+        <com:publicationTime>2026-04-05T09:43:00.001307245Z</com:publicationTime>
+        <com:publicationCreator>
+            <com:country>nl</com:country>
+            <com:nationalIdentifier>NDWNL</com:nationalIdentifier>
+        </com:publicationCreator>
+        <vms:headerInformation>
+            <com:confidentiality>noRestriction</com:confidentiality>
+            <com:informationStatus>real</com:informationStatus>
+        </vms:headerInformation>
+        <vms:vmsControllerStatus>
+            <vms:vmsControllerTableReference targetClass="vms:VmsControllerTable" id="NDW01_VMS_DRIP" version="latest"/>
+            <vms:vmsControllerReference targetClass="vms:VmsController" id="ARN01_VMST_0c6127a4-df40-4973-8a9a-d3b8713fa30e" version="84"/>
+            <vms:statusUpdateTime>2026-04-05T09:37:36.153Z</vms:statusUpdateTime>
+            <vms:vmsStatus vmsIndex="1">
+                <vms:vmsStatus>
+                    <vms:statusUpdateTime>2026-04-05T09:37:36.153Z</vms:statusUpdateTime>
+                    <vms:workingStatus>notWorking</vms:workingStatus>
+                    <vms:vmsMessage messageIndex="0">
+                        <vms:vmsMessage>
+                            <vms:timeLastSet>2026-04-05T09:37:36.153Z</vms:timeLastSet>
+                            <vms:image>
+                                <vms:imageData>iVBORw0KGgoAAAANSUhEUgAAAHAAAABQCAIAAABOLmYqAAAAPElEQVR4Xu3QoQ0AAAjAMP5/GhIsDgVJq6YXAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8Ea22SwZCsAVBaaEF+m7j9wZAAAAAElFTkSuQmCC</vms:imageData>
+                                <vms:imageFormat>png</vms:imageFormat>
+                            </vms:image>
+                        </vms:vmsMessage>
+                    </vms:vmsMessage>
+                </vms:vmsStatus>
+            </vms:vmsStatus>
+        </vms:vmsControllerStatus>
+    </mc:payload>
+    <mc:exchangeInformation modelBaseVersion="3">
+        <ex:exchangeContext>
+            <ex:codedExchangeProtocol>snapshotPull</ex:codedExchangeProtocol>
+            <ex:exchangeSpecificationVersion>3</ex:exchangeSpecificationVersion>
+            <ex:supplierOrCisRequester>
+                <ex:internationalIdentifier>
+                    <com:country>nl</com:country>
+                    <com:nationalIdentifier>NDWNL</com:nationalIdentifier>
+                </ex:internationalIdentifier>
+            </ex:supplierOrCisRequester>
+        </ex:exchangeContext>
+        <ex:dynamicInformation>
+            <ex:exchangeStatus>online</ex:exchangeStatus>
+            <ex:messageGenerationTimestamp>2026-04-05T09:43:00.001307245Z</ex:messageGenerationTimestamp>
+        </ex:dynamicInformation>
+    </mc:exchangeInformation>
+</mc:messageContainer>

@@ -54,6 +54,11 @@ public final class NdwClient implements AutoCloseable {
         httpClient.connectionPool().evictAll();
     }
 
+    public FileResponse getVmsPayload() throws IOException {
+        Map<String, String> headers = Map.of(HttpHeaders.ACCEPT_ENCODING, "gzip");
+        return getFile(INdwApi.VMS_PAYLOAD, headers);
+    }
+
     public FileResponse getTrafficSpeed() throws IOException {
         Map<String, String> headers = Map.of(HttpHeaders.ACCEPT_ENCODING, "gzip");
         return getFile(INdwApi.TRAFFIC_SPEED_XML_GZ, headers);
@@ -83,7 +88,9 @@ public final class NdwClient implements AutoCloseable {
         }
     }
 
-    /** Fetches the remote file, streams it to disk, returns response with http response code and headers */
+    /**
+     * Fetches the remote file, streams it to disk, returns response with http response code and headers
+     */
     FileResponse getFile(String name, Map<String, String> headers, File file) throws IOException {
         Response<ResponseBody> response = restApi.downloadFileStreaming(name, headers).execute();
         if (response.isSuccessful()) {
@@ -100,8 +107,4 @@ public final class NdwClient implements AutoCloseable {
         return FileResponse.create(response.code(), response.headers().toMultimap());
     }
 
-    public FileResponse getVmsPublication() throws IOException {
-        Map<String, String> headers = Map.of(HttpHeaders.ACCEPT_ENCODING, "gzip");
-        return getFile(INdwApi.VMS_PUBLICATION, headers);
-    }
 }

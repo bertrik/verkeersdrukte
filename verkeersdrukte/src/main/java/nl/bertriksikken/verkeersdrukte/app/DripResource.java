@@ -10,18 +10,13 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import nl.bertriksikken.datex2.MultilingualString;
-import nl.bertriksikken.datex2.MultilingualString.MultilingualStringValue;
-import nl.bertriksikken.datex2.VmsPublication;
-import nl.bertriksikken.datex2.VmsTablePublication;
-import nl.bertriksikken.datex2.VmsUnit.ImageData;
-import nl.bertriksikken.datex2.VmsUnit.VmsImage;
-import nl.bertriksikken.datex2.VmsUnit.VmsMessage;
-import nl.bertriksikken.datex2.VmsUnit.VmsMessageExtension;
-import nl.bertriksikken.datex2.VmsUnitRecord;
-import nl.bertriksikken.datex2.VmsUnitRecord.VmsRecord;
-import nl.bertriksikken.datex2.VmsUnitRecord.VmsRecord.VmsLocation;
-import nl.bertriksikken.datex2.VmsUnitRecord.VmsRecord.VmsLocation.LocationForDisplay;
+import nl.bertriksikken.datex2v3.Vms;
+import nl.bertriksikken.datex2v3.VmsController;
+import nl.bertriksikken.datex2v3.VmsControllerStatus;
+import nl.bertriksikken.datex2v3.VmsLocation;
+import nl.bertriksikken.datex2v3.VmsMessage;
+import nl.bertriksikken.datex2v3.VmsPayload;
+import nl.bertriksikken.datex2v3.VmsStatus;
 import nl.bertriksikken.geojson.FeatureCollection;
 import nl.bertriksikken.geojson.FeatureCollection.Feature;
 import nl.bertriksikken.geojson.FeatureCollection.PointGeometry;
@@ -72,36 +67,24 @@ public final class DripResource extends BaseResource {
     @GET
     @Path(STATIC_PATH)
     public FeatureCollection getStatic() {
-        VmsTablePublication vmsLocationTable = handler.getVmsLocationTable();
-        VmsPublication vmsPublication = handler.getVmsPublication();
+        VmsPayload vmsPayload = handler.getVmsPayload();
         FeatureCollection featureCollection = new FeatureCollection();
-        vmsLocationTable.getRecords().stream()
-                .filter(u -> vmsPublication.hasImageDataFor(u.getId()))
-                .map(this::mapVmsUnitRecord).filter(Objects::nonNull)
-                .map(this::addUrlProperties)
-                .forEach(featureCollection::add);
+        vmsPayload.getStatuses().stream().filter(VmsControllerStatus::isWorking).filter(VmsControllerStatus::hasImageData).map(VmsControllerStatus::getId).map(vmsPayload::findController).filter(VmsController::hasLocationData).map(this::mapVmsController).filter(Objects::nonNull).forEach(featureCollection::add);
         return featureCollection;
     }
 
-    private Feature mapVmsUnitRecord(VmsUnitRecord vmsUnitRecord) {
-        VmsRecord vmsRecord = Optional.ofNullable(vmsUnitRecord).map(r -> r.find(1)).orElse(null);
-        Feature feature = Optional.ofNullable(vmsRecord)
-                .map(VmsRecord::vmsLocation)
-                .map(VmsLocation::locationForDisplay)
-                .filter(LocationForDisplay::isValid)
-                .map(l -> new PointGeometry(l.latitude(), l.longitude()))
-                .map(Feature::new)
-                .orElse(null);
+    private Feature mapVmsController(VmsController controller) {
+        Vms vms = Optional.ofNullable(controller).map(VmsController::findFirstVms).orElse(null);
+        VmsLocation vmsLocation = Optional.ofNullable(vms).map(Vms::vmsLocation).orElse(null);
+        Feature feature = Optional.ofNullable(vmsLocation).map(VmsLocation::findPointCoordinates).map(c -> new PointGeometry(c.latitude(), c.longitude())).map(Feature::new).orElse(null);
         if (feature != null) {
-            feature.addProperty("id", vmsUnitRecord.getId());
-            feature.addProperty("physicalMounting", vmsRecord.physicalMounting());
-            feature.addProperty("type", vmsRecord.type());
-            String description = Optional.ofNullable(vmsRecord.vmsDescription())
-                    .map(MultilingualString::values)
-                    .map(l -> l.isEmpty() ? null : l.get(0))
-                    .map(MultilingualStringValue::value)
-                    .orElse("");
+            feature.addProperty("id", controller.getId());
+            feature.addProperty("physicalSupport", vms.physicalSupport());
+            feature.addProperty("type", vms.vmsType());
+            String description = Optional.ofNullable(vms.description()).map(Object::toString).orElse("");
             feature.addProperty("description", description);
+            feature.addProperty("bearing", vmsLocation.findBearing());
+            feature = addUrlProperties(feature);
         }
         return feature;
     }
@@ -110,9 +93,9 @@ public final class DripResource extends BaseResource {
     @GET
     @Path(STATIC_PATH + "/{id}")
     public Optional<Feature> getStatic(@PathParam("id") String id) {
-        VmsTablePublication vmsLocationTable = handler.getVmsLocationTable();
-        VmsUnitRecord vmsUnitRecord = vmsLocationTable.find(id);
-        return Optional.ofNullable(mapVmsUnitRecord(vmsUnitRecord));
+        VmsPayload vmsPayload = handler.getVmsPayload();
+        VmsController controller = vmsPayload.findController(id);
+        return Optional.ofNullable(mapVmsController(controller));
     }
 
     @Operation(summary = "Get dynamic data for a specific DRIP", tags = {"dynamic"})
@@ -120,10 +103,7 @@ public final class DripResource extends BaseResource {
     @Path(DYNAMIC_PATH + "/{id}")
     @CacheControl(maxAge = 1, maxAgeUnit = TimeUnit.MINUTES)
     public Optional<DynamicDataJson> getDynamic(@PathParam("id") String id) {
-        return findVmsMessage(id)
-                .map(VmsMessage::timeLastSet)
-                .map(Instant::parse)
-                .map(DynamicDataJson::new);// build DynamicDataJson
+        return findVmsMessage(id).map(VmsMessage::getTimeLastSet).map(DynamicDataJson::new);
     }
 
     @Operation(summary = "Get image data for a specific DRIP", tags = {"dynamic"})
@@ -132,21 +112,16 @@ public final class DripResource extends BaseResource {
     @Produces("image/png")
     @CacheControl(maxAge = 1, maxAgeUnit = TimeUnit.MINUTES)
     public Optional<byte[]> getDynamicImage(@PathParam("id") String id) {
-        return findVmsMessage(id)
-                .map(VmsMessage::extension)
-                .map(VmsMessageExtension::vmsImage)
-                .map(VmsImage::imageData)
-                .map(ImageData::asBytes);
+        VmsControllerStatus status = handler.getVmsPayload().findStatus(id);
+        return Optional.ofNullable(status).map(VmsControllerStatus::getImageData);
     }
 
     private Optional<VmsMessage> findVmsMessage(String id) {
-        return Optional.ofNullable(handler.getVmsPublication())
-                .map(pub -> pub.find(id))   // VmsUnit
-                .map(u -> u.find(1))  // VmsUnit.Vms
-                .map(v -> v.find(1));  // VmsMessage
+        VmsControllerStatus status = handler.getVmsPayload().findStatus(id);
+        return Optional.ofNullable(status).flatMap(VmsControllerStatus::findFirstVmsStatus).map(VmsStatus::findFirstVmsMessage);
     }
 
-    public final class DynamicDataJson {
+    final class DynamicDataJson {
         @SuppressWarnings("unused")
         @JsonProperty("lastUpdate")
         final String lastUpdate;
