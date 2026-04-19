@@ -5,11 +5,12 @@ application {
 }
 
 dependencies {
-    implementation libs.bundles.retrofit
+    implementation libs.bundles.dropwizard
     implementation libs.bundles.jackson
+    implementation libs.bundles.retrofit
 
-    implementation libs.dropwizard.core
     implementation libs.dropwizard.swagger
+
     implementation libs.jdbf
     implementation libs.jersey.media.sse
 }
