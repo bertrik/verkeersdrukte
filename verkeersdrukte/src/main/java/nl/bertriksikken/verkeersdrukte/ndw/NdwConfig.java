@@ -11,7 +11,10 @@ import java.time.Duration;
 public final class NdwConfig {
 
     @JsonProperty("host")
-    String host = "https://opendata.ndw.nu";
+    String trafficUrl = "https://opendata.ndw.nu";
+
+    @JsonProperty("mapsUrl")
+    String mapsUrl = "https://maps.ndw.nu";
 
     @JsonProperty("timeout")
     int timeout = 30;
@@ -19,8 +22,12 @@ public final class NdwConfig {
     @JsonProperty("cacheLocation")
     String cacheLocation = ".cache";
 
-    public String getUrl() {
-        return host;
+    public String getTrafficUrl() {
+        return trafficUrl;
+    }
+
+    public String getMapsUrl() {
+        return mapsUrl;
     }
 
     public Duration getTimeout() {
@@ -30,4 +37,9 @@ public final class NdwConfig {
     public String getCacheLocation() {
         return cacheLocation;
     }
+
+    void setCacheLocation(String cacheLocation) {
+        this.cacheLocation = cacheLocation;
+    }
+
 }

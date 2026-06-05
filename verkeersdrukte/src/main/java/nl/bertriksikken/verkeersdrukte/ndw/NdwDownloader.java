@@ -23,14 +23,15 @@ public final class NdwDownloader implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(NdwDownloader.class);
 
-    private final File cacheLocation;
-    private final NdwClient client;
     private final YAMLMapper yamlMapper = new YAMLMapper();
+    private final NdwClient client;
+    private final File cacheLocation;
+
     private CacheIndex cacheIndex = new CacheIndex();
 
     public NdwDownloader(NdwConfig config) {
-        this.cacheLocation = new File(config.getCacheLocation());
         this.client = NdwClient.create(config);
+        this.cacheLocation = new File(config.getCacheLocation());
     }
 
     public void start() {
@@ -49,7 +50,7 @@ public final class NdwDownloader implements AutoCloseable {
     /**
      * Fetch a file, either from cache, or freshly downloaded.
      */
-    public File fetchFile(String name) {
+    File fetchFile(String name, IFileFetcher fetcher) {
         File file = new File(cacheLocation, name);
 
         // download it with e-tag
@@ -60,7 +61,7 @@ public final class NdwDownloader implements AutoCloseable {
         headers.put(HttpHeaders.IF_NONE_MATCH, etag);
         headers.put(HttpHeaders.ACCEPT_ENCODING, "gzip");
         try {
-            FileResponse response = client.getFile(name, headers, file);
+            FileResponse response = fetcher.fetchFile(name, headers, file);
             switch (response.getCode()) {
                 case 200 -> {
                     // update our cache
@@ -81,6 +82,17 @@ public final class NdwDownloader implements AutoCloseable {
         return file;
     }
 
+    /**
+     * Fetch a file, either from cache, or freshly downloaded.
+     */
+    public File getTrafficFile(String name) {
+        return fetchFile(name, client::getFile);
+    }
+
+    public File getMapFile(String name) {
+        return fetchFile(name, client::getMapFile);
+    }
+
     private boolean loadCache() {
         File cacheFile = new File(cacheLocation, "index.yaml");
         try (FileInputStream fis = new FileInputStream(cacheFile)) {
@@ -99,6 +111,10 @@ public final class NdwDownloader implements AutoCloseable {
         } catch (IOException e) {
             LOG.warn("Failed to save cache at {}", cacheFile.getAbsolutePath());
         }
+    }
+
+    public interface IFileFetcher {
+        FileResponse fetchFile(String name, Map<String, String> headers, File file) throws IOException;
     }
 
     @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.NONE)

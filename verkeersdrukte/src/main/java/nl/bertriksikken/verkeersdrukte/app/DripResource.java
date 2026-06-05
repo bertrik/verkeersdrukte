@@ -69,7 +69,15 @@ public final class DripResource extends BaseResource {
     public FeatureCollection getStatic() {
         VmsPayload vmsPayload = handler.getVmsPayload();
         FeatureCollection featureCollection = new FeatureCollection();
-        vmsPayload.getStatuses().stream().filter(VmsControllerStatus::isWorking).filter(VmsControllerStatus::hasImageData).map(VmsControllerStatus::getId).map(vmsPayload::findController).filter(VmsController::hasLocationData).map(this::mapVmsController).filter(Objects::nonNull).forEach(featureCollection::add);
+        vmsPayload.getStatuses().stream()
+                .filter(VmsControllerStatus::isWorking)
+                .filter(VmsControllerStatus::hasImageData)
+                .map(VmsControllerStatus::getId)
+                .map(vmsPayload::findController)
+                .filter(VmsController::hasLocationData)
+                .map(this::mapVmsController)
+                .filter(Objects::nonNull)
+                .forEach(featureCollection::add);
         return featureCollection;
     }
 

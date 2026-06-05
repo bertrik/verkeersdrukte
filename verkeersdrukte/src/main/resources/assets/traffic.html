@@ -25,7 +25,7 @@
     }).addTo(map);
 
     // Fetch GeoJSON data and add to the map
-    fetch('https://stofradar.nl/traffic/static')
+    fetch('/traffic/static')
       .then(response => response.json())
       .then(data => {
         L.geoJSON(data, {
@@ -36,17 +36,18 @@
 
     // creates the marker with gateway icon
     function createMarker(feature, latlng) {
+      const externalId = feature?.properties?.externalId;
+      const rws = typeof externalId === "string" && externalId.includes("RWS");
       return L.circle(latlng, {
         radius: 15,
-        color: feature.properties.wegtype == 'H' ? 'blue' : 'navy',
+        color: rws ? 'blue' : 'navy',
         fillColor: 'lightblue',
         fillOpacity: 0.55
       });
     }
 
     function formatHeader(props) {
-      return `<strong>${props.dgl_loc}</strong><br>
-        ${props.naam} (${props.wegtype})<br>
+      return `<strong>${props.externalId}</strong><br>
         <a href="${props.streetviewUrl}" target="_blank">Streetview</a>
       `;
     }

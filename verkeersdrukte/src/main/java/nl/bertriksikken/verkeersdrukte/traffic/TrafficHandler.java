@@ -18,6 +18,7 @@ import nl.bertriksikken.verkeersdrukte.ndw.FileResponse;
 import nl.bertriksikken.verkeersdrukte.ndw.INdwApi;
 import nl.bertriksikken.verkeersdrukte.ndw.NdwClient;
 import nl.bertriksikken.verkeersdrukte.ndw.NdwDownloader;
+import nl.bertriksikken.verkeersdrukte.ndw.NdwShapeFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,17 +53,15 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private final NdwClient ndwClient;
     private final MeasurementCache measurementCache;
     private final NdwDownloader ndwDownloader;
-    private final ShapeFileDownloader shapeFileDownloader;
+    private final NdwShapeFile ndwShapeFile;
     private MeasurementSiteTable mst = new MeasurementSiteTable();
-
-    private FeatureCollection shapeFile = new FeatureCollection();
     private VmsPayload vmsPayload;
 
     public TrafficHandler(VerkeersDrukteAppConfig config) {
         ndwClient = NdwClient.create(config.getNdwConfig());
         measurementCache = new MeasurementCache(config.getTrafficConfig().getExpiryDuration());
         ndwDownloader = new NdwDownloader(config.getNdwConfig());
-        shapeFileDownloader = new ShapeFileDownloader(config.getTrafficConfig().getShapeFileFolder(), ndwDownloader);
+        ndwShapeFile = new NdwShapeFile();
     }
 
     @Override
@@ -155,10 +154,8 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         // get shape file
         LOG.info("Fetching shapefile...");
         try {
-            if (shapeFileDownloader.download()) {
-                shapeFile = shapeFileDownloader.getGeoJson();
-                LOG.info("Parsed shapefile, {} features", shapeFile.getFeatures().size());
-            }
+            ndwShapeFile.download(ndwDownloader);
+            LOG.info("Parsed shapefile, {} features", ndwShapeFile.getFeatureCollection().getFeatures().size());
         } catch (IOException e) {
             LOG.warn("Shapefile download failed with exception: {}", e.getMessage());
         }
@@ -166,14 +163,14 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         // get MST
         LOG.info("Fetching MST...");
         try {
-            File file = ndwDownloader.fetchFile(INdwApi.MEASUREMENT_SITE_TABLE);
+            File file = ndwDownloader.getTrafficFile(INdwApi.MEASUREMENT_SITE_TABLE);
             if (file != null) {
                 try (FileInputStream fis = new FileInputStream(file);
                      GZIPInputStream gzis = new GZIPInputStream(fis)) {
                     LOG.info("Parsing MST...");
                     Stopwatch sw = Stopwatch.createStarted();
                     mst = new MeasurementSiteTable();
-                    mst.parse(gzis, shapeFileDownloader.getSiteIds());
+                    mst.parse(gzis, ndwShapeFile.getSiteIds());
                     LOG.info("Parsed MST, {} entries, took {}", mst.getMeasurementSiteIds().size(), sw.elapsed());
                 }
             } else {
@@ -229,8 +226,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         }
         for (MeasuredValue value : measurements.measuredValueList) {
             // check vehicle type from MST against "anyVehicle"
-            MeasurementSpecificCharacteristicsElement chars =
-                    msr.findCharacteristic(value.index);
+            MeasurementSpecificCharacteristicsElement chars = msr.findCharacteristic(value.index);
             if (chars == null) {
                 LOG.warn("MeasurementSpecificCharacteristics not found for site '{}', index '{}", siteId, value.index);
                 continue;
@@ -275,19 +271,12 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
 
     @Override
     public FeatureCollection getStaticData() {
-        return shapeFile;
+        return ndwShapeFile.getFeatureCollection();
     }
 
     @Override
     public Feature getStaticData(String location) {
-        for (Feature feature : shapeFile.getFeatures()) {
-            String dlgLoc = feature.getProperties().get("dgl_loc").toString();
-            if (location.equals(dlgLoc)) {
-                return feature;
-            }
-        }
-        // not found
-        return null;
+        return ndwShapeFile.findFeature(location);
     }
 
     @Override

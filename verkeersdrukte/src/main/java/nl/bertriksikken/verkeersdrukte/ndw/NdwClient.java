@@ -26,21 +26,24 @@ public final class NdwClient implements AutoCloseable {
     private static final String USER_AGENT = "github.com/bertrik/verkeersdrukte";
 
     private final OkHttpClient httpClient;
-    private final INdwApi restApi;
+    private final INdwApi trafficApi;
+    private final INdwMapsApi mapsApi;
 
-    NdwClient(OkHttpClient httpClient, INdwApi restApi) {
+    NdwClient(OkHttpClient httpClient, INdwApi trafficApi, INdwMapsApi mapsApi) {
         this.httpClient = Objects.requireNonNull(httpClient);
-        this.restApi = Objects.requireNonNull(restApi);
+        this.trafficApi = Objects.requireNonNull(trafficApi);
+        this.mapsApi = Objects.requireNonNull(mapsApi);
     }
 
     public static NdwClient create(NdwConfig config) {
-        LOG.info("Creating new REST client for URL '{}' with timeout {}", config.getUrl(), config.getTimeout());
+        LOG.info("Creating new REST client for URL '{}' with timeout {}", config.getTrafficUrl(), config.getTimeout());
         OkHttpClient client = new OkHttpClient().newBuilder().addInterceptor(NdwClient::addUserAgent).connectTimeout(config.getTimeout())
                 .readTimeout(config.getTimeout()).build();
-        Retrofit retrofit = new Retrofit.Builder().baseUrl(config.getUrl())
-                .addConverterFactory(ScalarsConverterFactory.create()).client(client).build();
-        INdwApi restApi = retrofit.create(INdwApi.class);
-        return new NdwClient(client, restApi);
+        Retrofit.Builder retrofit = new Retrofit.Builder().baseUrl(config.getTrafficUrl())
+                .addConverterFactory(ScalarsConverterFactory.create()).client(client);
+        INdwApi trafficApi = retrofit.baseUrl(config.getTrafficUrl()).build().create(INdwApi.class);
+        INdwMapsApi mapsApi = retrofit.baseUrl(config.getMapsUrl()).build().create(INdwMapsApi.class);
+        return new NdwClient(client, trafficApi, mapsApi);
     }
 
     private static okhttp3.Response addUserAgent(Interceptor.Chain chain) throws IOException {
@@ -64,18 +67,13 @@ public final class NdwClient implements AutoCloseable {
         return getFile(INdwApi.TRAFFIC_SPEED_XML_GZ, headers);
     }
 
-    public FileResponse getShapeFile(String etag) throws IOException {
-        Map<String, String> headers = Map.of(HttpHeaders.IF_NONE_MATCH, etag);
-        return getFile(INdwApi.TRAFFIC_SPEED_SHAPEFILE, headers);
-    }
-
     public FileResponse getMeasurementSiteTable(String etag) throws IOException {
         Map<String, String> headers = Map.of(HttpHeaders.IF_NONE_MATCH, etag);
         return getFile(INdwApi.MEASUREMENT_SITE_TABLE, headers);
     }
 
     FileResponse getFile(String name, Map<String, String> headers) throws IOException {
-        Response<ResponseBody> response = restApi.downloadFile(name, headers).execute();
+        Response<ResponseBody> response = trafficApi.downloadFile(name, headers).execute();
         if (response.isSuccessful()) {
             try (ResponseBody body = response.body()) {
                 return FileResponse.withBody(response.code(), response.headers().toMultimap(), body.bytes());
@@ -92,7 +90,7 @@ public final class NdwClient implements AutoCloseable {
      * Fetches the remote file, streams it to disk, returns response with http response code and headers
      */
     FileResponse getFile(String name, Map<String, String> headers, File file) throws IOException {
-        Response<ResponseBody> response = restApi.downloadFileStreaming(name, headers).execute();
+        Response<ResponseBody> response = trafficApi.downloadFileStreaming(name, headers).execute();
         if (response.isSuccessful()) {
             try (ResponseBody body = response.body();
                  InputStream in = body.byteStream();
@@ -102,6 +100,25 @@ public final class NdwClient implements AutoCloseable {
         } else {
             if (response.code() > 400) {
                 LOG.warn("getFile('{}') failed, code {}: '{}'", name, response.code(), response.message());
+            }
+        }
+        return FileResponse.create(response.code(), response.headers().toMultimap());
+    }
+
+    /**
+     * Fetches the remote file, streams it to disk, returns response with http response code and headers
+     */
+    public FileResponse getMapFile(String name, Map<String, String> headers, File file) throws IOException {
+        Response<ResponseBody> response = mapsApi.fetchLatestGeojson(name, headers).execute();
+        if (response.isSuccessful()) {
+            try (ResponseBody body = response.body();
+                 InputStream in = body.byteStream();
+                 OutputStream out = new FileOutputStream(file)) {
+                in.transferTo(out);
+            }
+        } else {
+            if (response.code() > 400) {
+                LOG.warn("getMapFile('{}') failed, code {}: '{}'", name, response.code(), response.message());
             }
         }
         return FileResponse.create(response.code(), response.headers().toMultimap());

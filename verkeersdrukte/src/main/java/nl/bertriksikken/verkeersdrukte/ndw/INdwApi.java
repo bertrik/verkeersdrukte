@@ -12,7 +12,6 @@ import java.util.Map;
 public interface INdwApi {
 
     String TRAFFIC_SPEED_XML_GZ = "trafficspeed.xml.gz";
-    String TRAFFIC_SPEED_SHAPEFILE = "NDW_AVG_Meetlocaties_Shapefile.zip";
     String MEASUREMENT_SITE_TABLE = "measurement_current.xml.gz";
 
     String VMS_PAYLOAD = "dynamische_route_informatie_paneel.xml.gz";

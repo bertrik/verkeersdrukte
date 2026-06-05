@@ -20,16 +20,12 @@ public final class RunNdwClient {
     public static void main(String[] args) throws IOException {
         NdwConfig config = new NdwConfig();
         try (NdwClient client = NdwClient.create(config)) {
-            FileResponse response = client.getShapeFile("");
+            FileResponse response = client.getTrafficSpeed();
             byte[] contents = response.getContents();
             String etag = response.getEtag();
             LOG.info("Got file, {} bytes, etag: {}", contents.length, etag);
-            File file = new File(INdwApi.TRAFFIC_SPEED_SHAPEFILE);
+            File file = new File(INdwApi.TRAFFIC_SPEED_XML_GZ);
             Files.write(file.toPath(), contents);
-
-            // get again, expect HTTP code xxx
-            FileResponse nextResponse = client.getShapeFile(etag);
-            LOG.info("Next response: {}", nextResponse);
         }
     }
 }
