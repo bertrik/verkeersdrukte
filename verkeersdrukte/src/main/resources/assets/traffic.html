@@ -25,7 +25,7 @@
     }).addTo(map);
 
     // Fetch GeoJSON data and add to the map
-    fetch('https://stofradar.nl/traffic/static')
+    fetch('/traffic/static')
       .then(response => response.json())
       .then(data => {
         L.geoJSON(data, {
