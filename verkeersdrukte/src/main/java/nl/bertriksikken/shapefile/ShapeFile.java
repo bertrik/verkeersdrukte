@@ -137,6 +137,6 @@ public final class ShapeFile {
         return List.copyOf(records);
     }
 
-    private static final class ShapeProperties extends LinkedHashMap<String, Object> {}
+    static final class ShapeProperties extends LinkedHashMap<String, Object> {}
 
 }
