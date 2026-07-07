@@ -14,16 +14,19 @@ public final class MeasuredDataPublicationTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(MeasuredDataPublicationTest.class);
 
+    private long numEntries;
+
     @Test
     public void test() throws IOException {
         InputStream is = getClass().getResourceAsStream("/trafficspeed.xml.gz");
         MeasuredDataPublication measuredDataPublication = new MeasuredDataPublication(new XmlMapper());
         try (GZIPInputStream gzis = new GZIPInputStream(is)) {
             LOG.info("Start parsing...");
-            measuredDataPublication.parse(gzis);
+            numEntries = 0;
+            measuredDataPublication.parse(gzis, record -> numEntries++);
         }
-        Assertions.assertFalse(measuredDataPublication.getSiteMeasurementsList().isEmpty());
-        LOG.info("Got {} elements", measuredDataPublication.getSiteMeasurementsList().size());
+        Assertions.assertTrue(numEntries > 0);
+        LOG.info("Got {} elements", numEntries);
     }
 
 }

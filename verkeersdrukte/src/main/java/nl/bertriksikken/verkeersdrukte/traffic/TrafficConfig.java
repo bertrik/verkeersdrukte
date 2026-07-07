@@ -15,7 +15,7 @@ public final class TrafficConfig {
     @JsonProperty("baseUrl")
     private String baseUrl = "http://stofradar.nl:9002";
     @JsonProperty("expiryDurationMinutes")
-    private int expiryDurationMinutes = 1440;
+    private int expiryDurationMinutes = 60;
     @JsonProperty("shapeFileFolder")
     private String shapeFileFolder = ".shapefile";
 

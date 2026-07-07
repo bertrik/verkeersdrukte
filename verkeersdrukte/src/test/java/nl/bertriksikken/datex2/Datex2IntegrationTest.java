@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,13 +51,14 @@ public final class Datex2IntegrationTest {
         LOG.info("Loading measurements ...");
         InputStream measurementStream = getClass().getResourceAsStream("/trafficspeed.xml.gz");
         MeasuredDataPublication mdp = new MeasuredDataPublication(new XmlMapper());
+        List<SiteMeasurements> siteMeasurementsList = new ArrayList<>();
         try (GZIPInputStream gzis = new GZIPInputStream(measurementStream)) {
-            mdp.parse(gzis);
+            mdp.parse(gzis, siteMeasurementsList::add);
         }
         int mstNotFound = 0;
         int indexNotFound = 0;
         int anyNotFound = 0;
-        for (SiteMeasurements siteMeasurements : mdp.getSiteMeasurementsList()) {
+        for (SiteMeasurements siteMeasurements : siteMeasurementsList) {
             String referenceId = siteMeasurements.reference.id;
             MeasurementSiteRecord msr = mst.findMeasurementSiteRecord(referenceId);
             if (msr == null) {

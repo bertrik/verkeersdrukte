@@ -192,13 +192,11 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         try (GZIPInputStream gzis = new GZIPInputStream(inputStream)) {
             LOG.info("Parsing MDP...");
             Stopwatch sw = Stopwatch.createStarted();
-            publication.parse(gzis);
-            List<SiteMeasurements> siteMeasurementsList = publication.getSiteMeasurementsList();
-            for (SiteMeasurements measurements : siteMeasurementsList) {
-                SiteMeasurement siteMeasurement = processSiteMeasurements(measurements);
-                measurementCache.put(measurements.reference.id, siteMeasurement);
-            }
-            LOG.info("Parsed MDP, {} entries, took {}", siteMeasurementsList.size(), sw.elapsed());
+            publication.parse(gzis, record -> {
+                    SiteMeasurement siteMeasurement = processSiteMeasurements(record);
+                    measurementCache.put(record.reference.id, siteMeasurement);
+            });
+            LOG.info("Parsed MDP, {} entries in cache, took {}", measurementCache.size(), sw.elapsed());
         }
     }
 

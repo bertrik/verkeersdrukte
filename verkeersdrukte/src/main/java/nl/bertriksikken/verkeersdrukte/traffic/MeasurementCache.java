@@ -21,4 +21,7 @@ public final class MeasurementCache {
         return cache.getIfPresent(location);
     }
 
+    public long size() {
+        return cache.size();
+    }
 }
