@@ -1,10 +1,10 @@
 [versions]
 dropwizard = "5.0.2"
 errorprone = "2.50.0"
-jackson = "2.22.0"
+jackson = "2.22.1"
 jdbf = "2.2.4"
 jersey_media_sse = "3.1.11"
-junit = "6.1.1"
+junit = "6.1.2"
 retrofit = "3.0.0"
 
 [libraries]
