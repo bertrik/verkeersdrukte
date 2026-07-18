@@ -69,14 +69,26 @@ public final class DripResource extends BaseResource {
     public FeatureCollection getStatic() {
         VmsPayload vmsPayload = handler.getVmsPayload();
         FeatureCollection featureCollection = new FeatureCollection();
-        vmsPayload.getStatuses().stream().filter(VmsControllerStatus::isWorking).filter(VmsControllerStatus::hasImageData).map(VmsControllerStatus::getId).map(vmsPayload::findController).filter(VmsController::hasLocationData).map(this::mapVmsController).filter(Objects::nonNull).forEach(featureCollection::add);
+        vmsPayload.getStatuses().stream()
+                .filter(VmsControllerStatus::isWorking)
+                .filter(VmsControllerStatus::hasImageData)
+                .map(VmsControllerStatus::getId)
+                .map(vmsPayload::findController)
+                .filter(VmsController::hasLocationData)
+                .map(this::mapVmsController)
+                .filter(Objects::nonNull)
+                .forEach(featureCollection::add);
         return featureCollection;
     }
 
     private Feature mapVmsController(VmsController controller) {
         Vms vms = Optional.ofNullable(controller).map(VmsController::findFirstVms).orElse(null);
         VmsLocation vmsLocation = Optional.ofNullable(vms).map(Vms::vmsLocation).orElse(null);
-        Feature feature = Optional.ofNullable(vmsLocation).map(VmsLocation::findPointCoordinates).map(c -> new PointGeometry(c.latitude(), c.longitude())).map(Feature::new).orElse(null);
+        Feature feature = Optional.ofNullable(vmsLocation)
+                .map(VmsLocation::findPointCoordinates)
+                .map(c -> new PointGeometry(c.latitude(), c.longitude()))
+                .map(Feature::new)
+                .orElse(null);
         if (feature != null) {
             feature.addProperty("id", controller.getId());
             feature.addProperty("physicalSupport", vms.physicalSupport());
@@ -118,7 +130,9 @@ public final class DripResource extends BaseResource {
 
     private Optional<VmsMessage> findVmsMessage(String id) {
         VmsControllerStatus status = handler.getVmsPayload().findStatus(id);
-        return Optional.ofNullable(status).flatMap(VmsControllerStatus::findFirstVmsStatus).map(VmsStatus::findFirstVmsMessage);
+        return Optional.ofNullable(status)
+                .flatMap(VmsControllerStatus::findFirstVmsStatus)
+                .map(VmsStatus::findFirstVmsMessage);
     }
 
     final class DynamicDataJson {
@@ -127,7 +141,8 @@ public final class DripResource extends BaseResource {
         final String lastUpdate;
 
         DynamicDataJson(Instant instant) {
-            OffsetDateTime offsetDateTime = OffsetDateTime.ofInstant(instant.truncatedTo(ChronoUnit.SECONDS), config.getTimeZone());
+            OffsetDateTime offsetDateTime =
+                    OffsetDateTime.ofInstant(instant.truncatedTo(ChronoUnit.SECONDS), config.getTimeZone());
             lastUpdate = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(offsetDateTime);
         }
     }

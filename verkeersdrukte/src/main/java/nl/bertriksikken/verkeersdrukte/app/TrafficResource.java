@@ -84,8 +84,9 @@ public final class TrafficResource extends BaseResource implements ITrafficResou
             feature.addProperty("dynamicDataUrl", dynamicDataUrl);
             // streetview, see https://stackoverflow.com/questions/387942/google-street-view-url
             FeatureCollection.PointGeometry geometry = (FeatureCollection.PointGeometry) feature.getGeometry();
-            int angle = parseIntProperty(properties, "meetricht",0);
-            String streetviewUrl = String.format(Locale.ROOT, "https://maps.google.com/maps?layer=c&cbll=%.6f,%.6f&cbp=12,%d,0,0,0",
+            int angle = parseIntProperty(properties, "meetricht", 0);
+            String streetviewUrl = String.format(Locale.ROOT,
+                    "https://maps.google.com/maps?layer=c&cbll=%.6f,%.6f&cbp=12,%d,0,0,0",
                     geometry.getLatitude(), geometry.getLongitude(), angle);
             feature.addProperty("streetviewUrl", streetviewUrl);
         }
@@ -123,7 +124,8 @@ public final class TrafficResource extends BaseResource implements ITrafficResou
     @Path(DYNAMIC_PATH + "/{location}/events")
     @Produces(MediaType.SERVER_SENT_EVENTS)
     @CacheControl(noCache = true)
-    public void getTrafficEvents(@Context Sse sse, @Context SseEventSink sseEventSink, @PathParam("location") String location) {
+    public void getTrafficEvents(@Context Sse sse, @Context SseEventSink sseEventSink,
+                                 @PathParam("location") String location) {
         // verify that location exists
         if (handler.getStaticData(location) == null) {
             throw new NotFoundException();
