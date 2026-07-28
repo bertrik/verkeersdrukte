@@ -2,7 +2,6 @@ package nl.bertriksikken.verkeersdrukte.app;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.jersey.caching.CacheControl;
-import io.swagger.v3.oas.annotations.Operation;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -63,7 +62,6 @@ public final class DripResource extends BaseResource {
         return feature;
     }
 
-    @Operation(summary = "Get GeoJSON containing all DRIPs", tags = {"static"})
     @GET
     @Path(STATIC_PATH)
     public FeatureCollection getStatic() {
@@ -101,7 +99,6 @@ public final class DripResource extends BaseResource {
         return feature;
     }
 
-    @Operation(summary = "Get static data for a specific DRIP", tags = {"static"})
     @GET
     @Path(STATIC_PATH + "/{id}")
     public Optional<Feature> getStatic(@PathParam("id") String id) {
@@ -110,7 +107,6 @@ public final class DripResource extends BaseResource {
         return Optional.ofNullable(mapVmsController(controller));
     }
 
-    @Operation(summary = "Get dynamic data for a specific DRIP", tags = {"dynamic"})
     @GET
     @Path(DYNAMIC_PATH + "/{id}")
     @CacheControl(maxAge = 1, maxAgeUnit = TimeUnit.MINUTES)
@@ -118,7 +114,6 @@ public final class DripResource extends BaseResource {
         return findVmsMessage(id).map(VmsMessage::getTimeLastSet).map(DynamicDataJson::new);
     }
 
-    @Operation(summary = "Get image data for a specific DRIP", tags = {"dynamic"})
     @GET
     @Path(DYNAMIC_PATH + "/{id}/image")
     @Produces("image/png")

@@ -3,11 +3,8 @@ package nl.bertriksikken.verkeersdrukte.app;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.dropwizard.core.Application;
-import io.dropwizard.core.Configuration;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
-import io.federecio.dropwizard.swagger.SwaggerBundle;
-import io.federecio.dropwizard.swagger.SwaggerBundleConfiguration;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.container.ContainerResponseFilter;
@@ -30,7 +27,6 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
     @Override
     public void initialize(Bootstrap<VerkeersDrukteAppConfig> bootstrap) {
         bootstrap.getObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-        bootstrap.addBundle(new TrafficSwaggerBundle(TrafficResource.class.getPackage().getName()));
     }
 
     @Override
@@ -73,18 +69,4 @@ public final class VerkeersDrukteApp extends Application<VerkeersDrukteAppConfig
         VerkeersDrukteApp app = new VerkeersDrukteApp();
         app.run("server", CONFIG_FILE);
     }
-
-    private static final class TrafficSwaggerBundle extends SwaggerBundle<Configuration> {
-        private final SwaggerBundleConfiguration configuration = new SwaggerBundleConfiguration();
-
-        TrafficSwaggerBundle(String resourcePackage) {
-            this.configuration.setResourcePackage(resourcePackage);
-        }
-
-        @Override
-        protected SwaggerBundleConfiguration getSwaggerBundleConfiguration(Configuration configuration) {
-            return this.configuration;
-        }
-    }
-
 }
