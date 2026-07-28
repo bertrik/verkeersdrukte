@@ -6,6 +6,7 @@ jdbf = "2.2.4"
 jersey_media_sse = "3.1.11"
 junit = "6.1.2"
 retrofit = "3.0.0"
+versions_plugin= "0.56.0"
 
 [libraries]
 errorprone_annotations = { module = "com.google.errorprone:error_prone_annotations", version.ref = "errorprone" }
@@ -37,4 +38,4 @@ dropwizard = ["dropwizard-core"]
 
 [plugins]
 errorprone = "net.ltgt.errorprone:5.1.0"
-versions = { id = "com.github.ben-manes.versions", version = "0.54.0" }
+versions = { id = "com.github.ben-manes.versions", version.ref = "versions_plugin" }
