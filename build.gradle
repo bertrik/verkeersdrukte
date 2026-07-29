@@ -22,7 +22,7 @@ allprojects {
     }
 
     plugins.apply("java")
-    plugins.apply("com.github.ben-manes.versions")
+    plugins.apply("io.github.ben-manes.versions")
     plugins.apply("net.ltgt.errorprone")
 
     java {

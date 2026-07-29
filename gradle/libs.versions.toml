@@ -38,4 +38,4 @@ dropwizard = ["dropwizard-core"]
 
 [plugins]
 errorprone = "net.ltgt.errorprone:5.1.0"
-versions = { id = "com.github.ben-manes.versions", version.ref = "versions_plugin" }
+versions = { id = "io.github.ben-manes.versions", version.ref = "versions_plugin" }
