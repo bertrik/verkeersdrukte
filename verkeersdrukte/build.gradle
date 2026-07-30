@@ -5,6 +5,7 @@ application {
 }
 
 dependencies {
+    implementation libs.jetty.bom because("jersey depends on older version with CVEs")
     implementation libs.bundles.dropwizard
     implementation libs.bundles.jackson
     implementation libs.bundles.retrofit
