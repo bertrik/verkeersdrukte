@@ -7,7 +7,7 @@ jersey_media_sse = "3.1.11"
 jetty = "12.1.11"
 junit = "6.1.2"
 retrofit = "3.0.0"
-versions_plugin= "0.56.0"
+versions_plugin= "0.57.0"
 
 [libraries]
 jetty-bom  = { module = "org.eclipse.jetty:jetty-bom", version.ref = "jetty" }
