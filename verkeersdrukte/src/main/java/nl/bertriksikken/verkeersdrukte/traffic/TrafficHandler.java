@@ -21,7 +21,6 @@ import nl.bertriksikken.verkeersdrukte.ndw.NdwDownloader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -103,16 +102,17 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
 
     private void downloadTrafficSpeed() {
         LOG.info("Download traffic/speed");
-        Instant next;
+        Instant next = Instant.now().plusSeconds(60);
         try {
-            FileResponse response = ndwClient.getTrafficSpeed();
+            FileResponse response = ndwDownloader.fetchUncached(INdwApi.TRAFFIC_SPEED_XML_GZ);
             Duration age = Duration.between(response.getLastModified(), Instant.now());
             next = response.getLastModified().plusSeconds(65);
-            LOG.info("Got data, {} bytes, age {}", response.getContents().length, age);
-            decode(new ByteArrayInputStream(response.getContents()));
+            LOG.info("Got data, age {}", age);
+            try (FileInputStream fis = new FileInputStream(response.getFile())) {
+                decode(fis);
+            }
         } catch (IOException e) {
             LOG.warn("Download failed", e);
-            next = Instant.now().plusSeconds(60);
         }
 
         // schedule next
@@ -128,16 +128,17 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
 
     private void downloadVmsPublication() {
         LOG.info("Download VMS publication");
-        Instant next;
+        Instant next = Instant.now().plusSeconds(60);
         try {
-            FileResponse response = ndwClient.getVmsPayload();
+            FileResponse response = ndwDownloader.fetchUncached(INdwApi.VMS_PAYLOAD);
             Duration age = Duration.between(response.getLastModified(), Instant.now());
             next = response.getLastModified().plusSeconds(65);
-            LOG.info("Got data, {} bytes, age {}", response.getContents().length, age);
-            vmsPayload = decodeVmsPublication(new ByteArrayInputStream(response.getContents()));
+            LOG.info("Got data, age {}", age);
+            try (FileInputStream fis = new FileInputStream(response.getFile())) {
+                vmsPayload = decodeVmsPublication(fis);
+            }
         } catch (IOException e) {
             LOG.warn("Download VMS failed", e);
-            next = Instant.now().plusSeconds(60);
         }
 
         // schedule next

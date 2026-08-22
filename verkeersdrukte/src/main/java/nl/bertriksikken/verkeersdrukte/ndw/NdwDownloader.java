@@ -46,6 +46,13 @@ public final class NdwDownloader implements AutoCloseable {
         client.close();
     }
 
+    public FileResponse fetchUncached(String name) throws IOException {
+        File file = new File(cacheLocation, name);
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HttpHeaders.ACCEPT_ENCODING, "gzip");
+        return client.getFile(name, headers, file);
+    }
+
     /**
      * Fetch a file, either from cache, or freshly downloaded.
      */

@@ -104,7 +104,7 @@ public final class NdwClient implements AutoCloseable {
                 LOG.warn("getFile('{}') failed, code {}: '{}'", name, response.code(), response.message());
             }
         }
-        return FileResponse.create(response.code(), response.headers().toMultimap());
+        return FileResponse.withFile(response.code(), response.headers().toMultimap(), file);
     }
 
 }
