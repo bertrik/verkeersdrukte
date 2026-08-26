@@ -40,5 +40,5 @@ retrofit = ["retrofit", "retrofit-jackson", "retrofit-scalars"]
 dropwizard = ["dropwizard-core"]
 
 [plugins]
-errorprone = "net.ltgt.errorprone:5.1.0"
+errorprone = "net.ltgt.errorprone:5.1.1"
 versions = { id = "io.github.ben-manes.versions", version.ref = "versions_plugin" }
