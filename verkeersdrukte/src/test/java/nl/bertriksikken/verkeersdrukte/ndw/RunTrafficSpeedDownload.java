@@ -1,8 +1,8 @@
 package nl.bertriksikken.verkeersdrukte.ndw;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Map;
 
 public final class RunTrafficSpeedDownload {
 
@@ -12,10 +12,7 @@ public final class RunTrafficSpeedDownload {
 
         NdwConfig ndwConfig = new NdwConfig();
         try (NdwClient ndwClient = NdwClient.create(ndwConfig)) {
-            FileResponse response = ndwClient.getTrafficSpeed();
-            try (FileOutputStream outputStream = new FileOutputStream(destination)) {
-                outputStream.write(response.getContents());
-            }
+            ndwClient.getFile(INdwApi.TRAFFIC_SPEED_XML_GZ, Map.of(), destination);
         }
     }
 }

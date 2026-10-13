@@ -1,8 +1,8 @@
 package nl.bertriksikken.verkeersdrukte.ndw;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Map;
 
 public final class RunShapeFileDownload {
 
@@ -12,10 +12,7 @@ public final class RunShapeFileDownload {
 
         NdwConfig ndwConfig = new NdwConfig();
         try (NdwClient ndwClient = NdwClient.create(ndwConfig)) {
-            FileResponse response = ndwClient.getShapeFile("");
-            try (FileOutputStream outputStream = new FileOutputStream(destination)) {
-                outputStream.write(response.getContents());
-            }
+            ndwClient.getFile(INdwApi.TRAFFIC_SPEED_SHAPEFILE, Map.of(), destination);
         }
     }
 }

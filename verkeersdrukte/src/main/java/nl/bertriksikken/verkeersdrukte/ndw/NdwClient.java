@@ -5,7 +5,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.ResponseBody;
 import org.eclipse.jetty.http.HttpHeader;
-import org.glassfish.jersey.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Response;
@@ -52,40 +51,6 @@ public final class NdwClient implements AutoCloseable {
     public void close() {
         httpClient.dispatcher().executorService().shutdown();
         httpClient.connectionPool().evictAll();
-    }
-
-    public FileResponse getVmsPayload() throws IOException {
-        Map<String, String> headers = Map.of(HttpHeaders.ACCEPT_ENCODING, "gzip");
-        return getFile(INdwApi.VMS_PAYLOAD, headers);
-    }
-
-    public FileResponse getTrafficSpeed() throws IOException {
-        Map<String, String> headers = Map.of(HttpHeaders.ACCEPT_ENCODING, "gzip");
-        return getFile(INdwApi.TRAFFIC_SPEED_XML_GZ, headers);
-    }
-
-    public FileResponse getShapeFile(String etag) throws IOException {
-        Map<String, String> headers = Map.of(HttpHeaders.IF_NONE_MATCH, etag);
-        return getFile(INdwApi.TRAFFIC_SPEED_SHAPEFILE, headers);
-    }
-
-    public FileResponse getMeasurementSiteTable(String etag) throws IOException {
-        Map<String, String> headers = Map.of(HttpHeaders.IF_NONE_MATCH, etag);
-        return getFile(INdwApi.MEASUREMENT_SITE_TABLE, headers);
-    }
-
-    FileResponse getFile(String name, Map<String, String> headers) throws IOException {
-        Response<ResponseBody> response = restApi.downloadFile(name, headers).execute();
-        if (response.isSuccessful()) {
-            try (ResponseBody body = response.body()) {
-                return FileResponse.withBody(response.code(), response.headers().toMultimap(), body.bytes());
-            }
-        } else {
-            if (response.code() > 400) {
-                LOG.warn("getFile('{}') failed, code {}: '{}'", name, response.code(), response.message());
-            }
-            return FileResponse.create(response.code(), response.headers().toMultimap());
-        }
     }
 
     /**

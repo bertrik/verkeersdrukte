@@ -1,8 +1,8 @@
 package nl.bertriksikken.verkeersdrukte.ndw;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Downloads the MST from NDW (10 MB!)
@@ -15,10 +15,7 @@ public final class RunMstDownload {
 
         NdwConfig ndwConfig = new NdwConfig();
         try (NdwClient ndwClient = NdwClient.create(ndwConfig)) {
-            FileResponse response = ndwClient.getMeasurementSiteTable("");
-            try (FileOutputStream outputStream = new FileOutputStream(destination)) {
-                outputStream.write(response.getContents());
-            }
+            ndwClient.getFile(INdwApi.MEASUREMENT_SITE_TABLE, Map.of(), destination);
         }
     }
 

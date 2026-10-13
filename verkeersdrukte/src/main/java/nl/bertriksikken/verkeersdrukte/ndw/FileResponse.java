@@ -13,37 +13,21 @@ import java.util.Map;
 public final class FileResponse {
 
     private final int code;
-    private final byte[] contents;
     private final Map<String, List<String>> headers;
     private final File file;
 
-    FileResponse(int code, Map<String, List<String>> headers, byte[] contents, File file) {
+    FileResponse(int code, Map<String, List<String>> headers, File file) {
         this.code = code;
         this.headers = headers; // do not copy, original map has special case-insensitive properties
-        this.contents = contents;
         this.file = file;
     }
 
-    @Deprecated // "Do not use, contains large byte arrays, prefer file variant
-    public static FileResponse withBody(int code, Map<String, List<String>> headers, byte[] contents) {
-        return new FileResponse(code, headers, contents,  null);
-    }
-
     public static FileResponse withFile(int code, Map<String, List<String>> headers, File file) {
-        return new FileResponse(code, headers, new byte[0], file);
-    }
-
-    public static FileResponse create(int code, Map<String, List<String>> headers) {
-        return new FileResponse(code, headers, new byte[0], null);
+        return new FileResponse(code, headers, file);
     }
 
     public int getCode() {
         return code;
-    }
-
-    @Deprecated // "Do not use, contains large byte arrays, prefer file variant"
-    public byte[] getContents() {
-        return contents;
     }
 
     public File getFile() {
@@ -62,6 +46,6 @@ public final class FileResponse {
 
     @Override
     public String toString() {
-        return String.format(Locale.ROOT, "{code=%s,contents=%d bytes,headers=%s}", code, contents.length, headers);
+        return String.format(Locale.ROOT, "{code=%s,headers=%s}", code, headers);
     }
 }
