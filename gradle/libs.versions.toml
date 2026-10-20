@@ -1,7 +1,7 @@
 [versions]
 dropwizard = "5.0.2"
 errorprone = "2.50.0"
-jackson = "2.22.3"
+jackson = "2.22.4"
 jdbf = "2.2.4"
 jersey_media_sse = "3.1.12"
 jetty = "12.1.14"
