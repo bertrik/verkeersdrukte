@@ -16,7 +16,6 @@ import nl.bertriksikken.geojson.FeatureCollection.Feature;
 import nl.bertriksikken.verkeersdrukte.app.VerkeersDrukteAppConfig;
 import nl.bertriksikken.verkeersdrukte.ndw.FileResponse;
 import nl.bertriksikken.verkeersdrukte.ndw.INdwApi;
-import nl.bertriksikken.verkeersdrukte.ndw.NdwClient;
 import nl.bertriksikken.verkeersdrukte.ndw.NdwDownloader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +47,6 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private final Map<String, INotifyData> subscriptions = new ConcurrentHashMap<>();
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private final XmlMapper xmlMapper = new XmlMapper();
-    private final NdwClient ndwClient;
     private final MeasurementCache measurementCache;
     private final NdwDownloader ndwDownloader;
     private final ShapeFileDownloader shapeFileDownloader;
@@ -58,7 +56,6 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private VmsPayload vmsPayload;
 
     public TrafficHandler(VerkeersDrukteAppConfig config) {
-        ndwClient = NdwClient.create(config.getNdwConfig());
         measurementCache = new MeasurementCache(config.getTrafficConfig().getExpiryDuration());
         ndwDownloader = new NdwDownloader(config.getNdwConfig());
         shapeFileDownloader = new ShapeFileDownloader(config.getTrafficConfig().getShapeFileFolder(), ndwDownloader);
@@ -96,7 +93,6 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     @Override
     public void stop() {
         ndwDownloader.close();
-        ndwClient.close();
         executor.shutdownNow();
     }
 
