@@ -152,9 +152,10 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         // get shape file
         LOG.info("Fetching shapefile...");
         try {
+            Stopwatch sw = Stopwatch.createStarted();
             if (shapeFileDownloader.download()) {
                 shapeFile = shapeFileDownloader.getGeoJson();
-                LOG.info("Parsed shapefile, {} features", shapeFile.getFeatures().size());
+                LOG.info("Parsed shapefile, {} features, took {}", shapeFile.getFeatures().size(), sw.elapsed());
             }
         } catch (IOException e) {
             LOG.warn("Shapefile download failed with exception: {}", e.getMessage());
