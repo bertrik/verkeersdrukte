@@ -3,7 +3,6 @@ package nl.bertriksikken.verkeersdrukte.ndw;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import org.glassfish.jersey.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +48,7 @@ public final class NdwDownloader implements AutoCloseable {
     public FileResponse fetchUncached(String name) throws IOException {
         File file = new File(cacheLocation, name);
         Map<String, String> headers = new HashMap<>();
-        headers.put(HttpHeaders.ACCEPT_ENCODING, "gzip");
+        headers.put("Accept-Encoding", "gzip");
         return client.getFile(name, headers, file);
     }
 
@@ -64,8 +63,8 @@ public final class NdwDownloader implements AutoCloseable {
         String etag = file.exists() ? cacheEntry.etag() : "";
 
         Map<String, String> headers = new HashMap<>();
-        headers.put(HttpHeaders.IF_NONE_MATCH, etag);
-        headers.put(HttpHeaders.ACCEPT_ENCODING, "gzip");
+        headers.put("If-None-Match", etag);
+        headers.put("Accept-Encoding", "gzip");
         try {
             FileResponse response = client.getFile(name, headers, file);
             switch (response.getCode()) {
@@ -75,10 +74,9 @@ public final class NdwDownloader implements AutoCloseable {
                     cacheIndex.put(name, cacheEntry);
                     saveCache();
                 }
-                case 304 -> {
+                case 304 ->
                     // we already have the file in our cache, do nothing
                     LOG.info("File '{}' already cached (etag {})", name, etag);
-                }
                 default -> LOG.warn("Failed to download '{}': {}", name, response);
             }
         } catch (IOException e) {

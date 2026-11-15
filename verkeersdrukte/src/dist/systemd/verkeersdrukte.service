@@ -15,7 +15,7 @@ Restart=on-failure
 RestartSec=10s
 TimeoutStopSec=15s
 User=bertrik
-Environment="VERKEERSDRUKTE_OPTS=-Xmx128M"
+Environment="JAVA_OPTS=-Xmx128M"
 
 [Install]
 WantedBy=multi-user.target

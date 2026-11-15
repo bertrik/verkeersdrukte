@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.dropwizard.jersey.caching.CacheControl;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
@@ -20,7 +20,6 @@ import jakarta.ws.rs.sse.SseEventSink;
 import nl.bertriksikken.geojson.FeatureCollection;
 import nl.bertriksikken.verkeersdrukte.traffic.ITrafficHandler;
 import nl.bertriksikken.verkeersdrukte.traffic.SiteMeasurement;
-import nl.bertriksikken.verkeersdrukte.traffic.TrafficConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,8 +49,9 @@ public final class TrafficResource extends BaseResource implements ITrafficResou
     private static final ObjectMapper mapper = new ObjectMapper();
     private final AtomicInteger atomicInteger = new AtomicInteger();
 
-    TrafficResource(ITrafficHandler handler, TrafficConfig config) {
-        super(handler, config);
+    @Inject
+    public TrafficResource(ITrafficHandler handler, VerkeersDrukteAppConfig config) {
+        super(handler, config.getTrafficConfig());
         mapper.findAndRegisterModules();
     }
 
@@ -114,7 +114,6 @@ public final class TrafficResource extends BaseResource implements ITrafficResou
     @Override
     @GET
     @Path(DYNAMIC_PATH + "/{location}")
-    @CacheControl(maxAge = 1, maxAgeUnit = TimeUnit.MINUTES)
     public Optional<DynamicDataJson> getDynamic(@PathParam("location") String location) {
         return Optional.ofNullable(handler.getDynamicData(location)).map(DynamicDataJson::new);
     }
@@ -123,7 +122,6 @@ public final class TrafficResource extends BaseResource implements ITrafficResou
     @GET
     @Path(DYNAMIC_PATH + "/{location}/events")
     @Produces(MediaType.SERVER_SENT_EVENTS)
-    @CacheControl(noCache = true)
     public void getTrafficEvents(@Context Sse sse, @Context SseEventSink sseEventSink,
                                  @PathParam("location") String location) {
         // verify that location exists

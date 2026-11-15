@@ -1,7 +1,7 @@
 package nl.bertriksikken.verkeersdrukte.app;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.dropwizard.jersey.caching.CacheControl;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -20,7 +20,6 @@ import nl.bertriksikken.geojson.FeatureCollection;
 import nl.bertriksikken.geojson.FeatureCollection.Feature;
 import nl.bertriksikken.geojson.FeatureCollection.PointGeometry;
 import nl.bertriksikken.verkeersdrukte.traffic.ITrafficHandler;
-import nl.bertriksikken.verkeersdrukte.traffic.TrafficConfig;
 
 import java.io.InputStream;
 import java.time.Instant;
@@ -29,7 +28,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 @Path(DripResource.PATH)
 @Produces(MediaType.APPLICATION_JSON)
@@ -40,8 +38,9 @@ public final class DripResource extends BaseResource {
     static final String STATIC_PATH = "/static";
     static final String DYNAMIC_PATH = "/dynamic";
 
-    DripResource(ITrafficHandler handler, TrafficConfig config) {
-        super(handler, config);
+    @Inject
+    public DripResource(ITrafficHandler handler, VerkeersDrukteAppConfig config) {
+        super(handler, config.getTrafficConfig());
     }
 
     @Override
@@ -101,26 +100,36 @@ public final class DripResource extends BaseResource {
 
     @GET
     @Path(STATIC_PATH + "/{id}")
-    public Optional<Feature> getStatic(@PathParam("id") String id) {
+    public Response getStatic(@PathParam("id") String id) {
         VmsPayload vmsPayload = handler.getVmsPayload();
         VmsController controller = vmsPayload.findController(id);
-        return Optional.ofNullable(mapVmsController(controller));
+        Feature feature = mapVmsController(controller);
+        if (feature == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(feature).build();
     }
 
     @GET
     @Path(DYNAMIC_PATH + "/{id}")
-    @CacheControl(maxAge = 1, maxAgeUnit = TimeUnit.MINUTES)
-    public Optional<DynamicDataJson> getDynamic(@PathParam("id") String id) {
-        return findVmsMessage(id).map(VmsMessage::getTimeLastSet).map(DynamicDataJson::new);
+    public Response getDynamic(@PathParam("id") String id) {
+        return findVmsMessage(id)
+                .map(VmsMessage::getTimeLastSet)
+                .map(DynamicDataJson::new)
+                .map(data -> Response.ok(data).build())
+                .orElseGet(() -> Response.status(Response.Status.NOT_FOUND).build());
     }
 
     @GET
     @Path(DYNAMIC_PATH + "/{id}/image")
     @Produces("image/png")
-    @CacheControl(maxAge = 1, maxAgeUnit = TimeUnit.MINUTES)
-    public Optional<byte[]> getDynamicImage(@PathParam("id") String id) {
+    public Response getDynamicImage(@PathParam("id") String id) {
         VmsControllerStatus status = handler.getVmsPayload().findStatus(id);
-        return Optional.ofNullable(status).map(VmsControllerStatus::getImageData);
+        byte[] imageData = Optional.ofNullable(status).map(VmsControllerStatus::getImageData).orElse(null);
+        if (imageData == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(imageData, "image/png").build();
     }
 
     private Optional<VmsMessage> findVmsMessage(String id) {

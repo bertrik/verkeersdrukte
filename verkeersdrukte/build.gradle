@@ -1,16 +1,38 @@
-apply plugin: "application"
-
-application {
-    mainClass = 'nl.bertriksikken.verkeersdrukte.app.VerkeersDrukteApp'
+plugins {
+    alias(libs.plugins.quarkus)
+    id 'distribution'
 }
 
 dependencies {
-    implementation(platform(libs.jetty.bom)) { because("jersey depends on older version with CVEs") }
-    implementation libs.bundles.dropwizard
+    implementation libs.bundles.quarkus
     implementation libs.bundles.jackson
     implementation libs.bundles.retrofit
 
     implementation libs.jdbf
-    implementation libs.jersey.media.sse
+    implementation libs.guava
+}
+
+quarkus {
+    setFinalName("verkeersdrukte")
+}
+
+distributions {
+    main {
+        contents {
+            from("src/dist")
+            from(layout.buildDirectory.dir("quarkus-app"))
+        }
+    }
+}
+
+tasks.named("distTar") {
+    archiveFileName = "verkeersdrukte.tar"
+}
+
+["distTar", "distZip"].each { taskName ->
+    tasks.named(taskName) {
+        dependsOn(tasks.named("quarkusBuild"))
+        useFileSystemPermissions()
+    }
 }
 

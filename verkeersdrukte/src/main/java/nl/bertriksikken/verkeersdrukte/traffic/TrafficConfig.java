@@ -1,37 +1,42 @@
 package nl.bertriksikken.verkeersdrukte.traffic;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.quarkus.runtime.annotations.StaticInitSafe;
 
 import java.io.File;
 import java.time.Duration;
 import java.time.ZoneId;
 
-@JsonAutoDetect(getterVisibility = JsonAutoDetect.Visibility.NONE)
-public final class TrafficConfig {
+@ConfigMapping(prefix = "verkeersdrukte.traffic")
+@StaticInitSafe
+public interface TrafficConfig {
 
-    @JsonProperty("timeZone")
-    private String timeZone = "Europe/Amsterdam";
-    @JsonProperty("baseUrl")
-    private String baseUrl = "http://stofradar.nl:9002";
-    @JsonProperty("expiryDurationMinutes")
-    private int expiryDurationMinutes = 60;
-    @JsonProperty("shapeFileFolder")
-    private String shapeFileFolder = ".shapefile";
+    @WithDefault("Europe/Amsterdam")
+    String timeZone();
 
-    public ZoneId getTimeZone() {
-        return ZoneId.of(timeZone);
+    @WithDefault("http://stofradar.nl:9002")
+    String baseUrl();
+
+    @WithDefault("60")
+    int expiryDurationMinutes();
+
+    @WithDefault(".shapefile")
+    String shapeFileFolder();
+
+    default ZoneId getTimeZone() {
+        return ZoneId.of(timeZone());
     }
 
-    public String getBaseUrl() {
-        return baseUrl;
+    default String getBaseUrl() {
+        return baseUrl();
     }
 
-    public Duration getExpiryDuration() {
-        return Duration.ofMinutes(expiryDurationMinutes);
+    default Duration getExpiryDuration() {
+        return Duration.ofMinutes(expiryDurationMinutes());
     }
 
-    public File getShapeFileFolder() {
-        return new File(shapeFileFolder);
+    default File getShapeFileFolder() {
+        return new File(shapeFileFolder());
     }
 }

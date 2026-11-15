@@ -1,24 +1,16 @@
----
-ndw:
-  host: "https://opendata.ndw.nu/"
-  timeout: 30
-traffic:
-  timeZone: "Europe/Amsterdam"
-  baseUrl: "http://stofradar.nl:9002"
-  expiryDurationMinutes: 1440
-headers:
-  Access-Control-Allow-Origin: "*"
-  X-Accel-Buffering: "no"
-logging: !<default>
-  level: "INFO"
-  loggers: {}
-  appenders:
-    - type: console
-      logFormat: "%d{yyyy-MM-dd} | %d{HH:mm:ss.SSS} | %-15.15thread | %5p | %-25.25logger{25} | %m%n"
-      target: "STDOUT"
-server: !<default>
-  adminConnectors: []
-  applicationConnectors:
-    - type: http
-      port: 9002
-
+verkeersdrukte:
+  ndw:
+    host: https://opendata.ndw.nu/
+    timeout: 30
+    cache-location: .cache
+  traffic:
+    time-zone: Europe/Amsterdam
+    base-url: https://stofradar.nl
+  headers:
+    Access-Control-Allow-Origin: "*"
+    X-Accel-Buffering: "no"
+quarkus:
+  http:
+    port: 9002
+    host: 0.0.0.0
+    enable-compression: true

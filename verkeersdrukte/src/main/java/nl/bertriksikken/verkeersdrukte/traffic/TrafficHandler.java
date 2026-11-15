@@ -3,7 +3,10 @@ package nl.bertriksikken.verkeersdrukte.traffic;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Stopwatch;
 import com.google.common.util.concurrent.Runnables;
-import io.dropwizard.lifecycle.Managed;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import nl.bertriksikken.datex2.MeasuredDataPublication;
 import nl.bertriksikken.datex2.MeasuredValue;
 import nl.bertriksikken.datex2.MeasurementSiteRecord;
@@ -40,7 +43,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.zip.GZIPInputStream;
 
-public final class TrafficHandler implements ITrafficHandler, Managed {
+@ApplicationScoped
+public class TrafficHandler implements ITrafficHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(TrafficHandler.class);
 
@@ -55,13 +59,14 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     private FeatureCollection shapeFile = new FeatureCollection();
     private VmsPayload vmsPayload;
 
+    @Inject
     public TrafficHandler(VerkeersDrukteAppConfig config) {
         measurementCache = new MeasurementCache(config.getTrafficConfig().getExpiryDuration());
         ndwDownloader = new NdwDownloader(config.getNdwConfig());
         shapeFileDownloader = new ShapeFileDownloader(config.getTrafficConfig().getShapeFileFolder(), ndwDownloader);
     }
 
-    @Override
+    @PostConstruct
     public void start() {
         ndwDownloader.start();
 
@@ -90,7 +95,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         executor.schedule(runnable, delay.toMillis(), TimeUnit.MILLISECONDS);
     }
 
-    @Override
+    @PreDestroy
     public void stop() {
         ndwDownloader.close();
         executor.shutdownNow();

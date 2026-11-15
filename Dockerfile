@@ -8,5 +8,5 @@ LABEL org.opencontainers.image.licenses="MIT"
 ADD verkeersdrukte/build/distributions/verkeersdrukte.tar /opt/
 
 WORKDIR /opt/verkeersdrukte
-ENTRYPOINT ["/opt/verkeersdrukte/bin/verkeersdrukte"]
+ENTRYPOINT ["java", "-Dquarkus.config.locations=file:/opt/verkeersdrukte/configuration.yaml", "-jar", "quarkus-run.jar"]
 

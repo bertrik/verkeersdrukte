@@ -1,0 +1,17 @@
+verkeersdrukte:
+  ndw:
+    host: https://opendata.ndw.nu/
+    timeout: 30
+    cache-location: .cache
+  traffic:
+    time-zone: Europe/Amsterdam
+    base-url: https://stofradar.nl
+    expiry-duration-minutes: 1440
+  headers:
+    Access-Control-Allow-Origin: "*"
+    X-Accel-Buffering: "no"
+quarkus:
+  http:
+    port: 9002
+    host: 0.0.0.0
+    enable-compression: true
