@@ -1,26 +1,28 @@
 package nl.bertriksikken.verkeersdrukte.traffic;
 
-import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
-import io.quarkus.runtime.annotations.StaticInitSafe;
+import io.smallrye.config.WithName;
 
 import java.io.File;
 import java.time.Duration;
 import java.time.ZoneId;
 
-@ConfigMapping(prefix = "verkeersdrukte.traffic")
-@StaticInitSafe
+/** Traffic settings nested in the application configuration mapping. */
 public interface TrafficConfig {
 
+    @WithName("time-zone")
     @WithDefault("Europe/Amsterdam")
     String timeZone();
 
+    @WithName("base-url")
     @WithDefault("http://stofradar.nl:9002")
     String baseUrl();
 
+    @WithName("expiry-duration-minutes")
     @WithDefault("60")
     int expiryDurationMinutes();
 
+    @WithName("shape-file-folder")
     @WithDefault(".shapefile")
     String shapeFileFolder();
 

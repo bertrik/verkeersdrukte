@@ -1,35 +1,22 @@
 package nl.bertriksikken.verkeersdrukte.app;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import io.quarkus.runtime.annotations.StaticInitSafe;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithName;
 import nl.bertriksikken.verkeersdrukte.ndw.NdwConfig;
 import nl.bertriksikken.verkeersdrukte.traffic.TrafficConfig;
 
 import java.util.Map;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public final class VerkeersDrukteAppConfig {
+@ConfigMapping(prefix = "verkeersdrukte")
+@StaticInitSafe
+public interface VerkeersDrukteAppConfig {
 
-    @JsonProperty("ndw")
-    private NdwConfig ndwConfig;
-    @JsonProperty("traffic")
-    private TrafficConfig trafficConfig;
-    @JsonProperty("headers")
-    private Map<String, String> headers = Map.of();
+    @WithName("ndw")
+    NdwConfig ndw();
 
-    public NdwConfig getNdwConfig() {
-        return ndwConfig;
-    }
+    @WithName("traffic")
+    TrafficConfig traffic();
 
-    public TrafficConfig getTrafficConfig() {
-        return trafficConfig;
-    }
-
-    public Map<String, String> getHeaders() {
-        return Map.copyOf(headers);
-    }
-
-    public void setNdwConfig(NdwConfig value) { ndwConfig = value; }
-    public void setTrafficConfig(TrafficConfig value) { trafficConfig = value; }
-    public void setHeaders(Map<String, String> value) { headers = Map.copyOf(value); }
+    Map<String, String> headers();
 }

@@ -61,9 +61,9 @@ public class TrafficHandler implements ITrafficHandler {
 
     @Inject
     public TrafficHandler(VerkeersDrukteAppConfig config) {
-        measurementCache = new MeasurementCache(config.getTrafficConfig().getExpiryDuration());
-        ndwDownloader = new NdwDownloader(config.getNdwConfig());
-        shapeFileDownloader = new ShapeFileDownloader(config.getTrafficConfig().getShapeFileFolder(), ndwDownloader);
+        measurementCache = new MeasurementCache(config.traffic().getExpiryDuration());
+        ndwDownloader = new NdwDownloader(config.ndw());
+        shapeFileDownloader = new ShapeFileDownloader(config.traffic().getShapeFileFolder(), ndwDownloader);
     }
 
     @PostConstruct

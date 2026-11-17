@@ -1,21 +1,24 @@
 package nl.bertriksikken.verkeersdrukte.ndw;
 
-import io.quarkus.runtime.annotations.StaticInitSafe;
-import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
 import java.time.Duration;
 
-@ConfigMapping(prefix = "verkeersdrukte.ndw")
-@StaticInitSafe
+/**
+ * NDW settings nested in the application configuration mapping.
+ */
 public interface NdwConfig {
 
+    @WithName("host")
     @WithDefault("https://opendata.ndw.nu")
     String host();
 
+    @WithName("timeout")
     @WithDefault("30")
     int timeout();
 
+    @WithName("cache-location")
     @WithDefault(".cache")
     String cacheLocation();
 

@@ -3,6 +3,7 @@ package nl.bertriksikken.verkeersdrukte.traffic;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nl.bertriksikken.geojson.FeatureCollection;
 import nl.bertriksikken.verkeersdrukte.TestConfig;
+import nl.bertriksikken.verkeersdrukte.app.VerkeersDrukteAppConfig;
 import nl.bertriksikken.verkeersdrukte.ndw.NdwConfig;
 import nl.bertriksikken.verkeersdrukte.ndw.NdwDownloader;
 
@@ -13,7 +14,7 @@ import java.io.IOException;
 public final class RunShapeFileDownloader {
 
     public static void main(String[] args) throws IOException {
-        NdwConfig ndwConfig = TestConfig.mapping(NdwConfig.class);
+        NdwConfig ndwConfig = TestConfig.mapping(VerkeersDrukteAppConfig.class).ndw();
         try (NdwDownloader ndwDownloader = new NdwDownloader(ndwConfig)) {
             ndwDownloader.start();
             File folder = new File(".shapefile");

@@ -46,13 +46,12 @@ public final class TrafficResource extends BaseResource implements ITrafficResou
     static final String STATIC_PATH = "/static";
     static final String DYNAMIC_PATH = "/dynamic";
     private static final Logger LOG = LoggerFactory.getLogger(TrafficResource.class);
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
     private final AtomicInteger atomicInteger = new AtomicInteger();
 
     @Inject
     public TrafficResource(ITrafficHandler handler, VerkeersDrukteAppConfig config) {
-        super(handler, config.getTrafficConfig());
-        mapper.findAndRegisterModules();
+        super(handler, config.traffic());
     }
 
     @Override

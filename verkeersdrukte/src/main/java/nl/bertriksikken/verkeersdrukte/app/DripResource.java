@@ -40,7 +40,7 @@ public final class DripResource extends BaseResource {
 
     @Inject
     public DripResource(ITrafficHandler handler, VerkeersDrukteAppConfig config) {
-        super(handler, config.getTrafficConfig());
+        super(handler, config.traffic());
     }
 
     @Override

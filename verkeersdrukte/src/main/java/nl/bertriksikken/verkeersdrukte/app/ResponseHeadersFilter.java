@@ -6,7 +6,9 @@ import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.ext.Provider;
 
-/** Adds configured headers and cache policy to every REST response. */
+/**
+ * Adds configured headers and cache policy to every REST response.
+ */
 @Provider
 public class ResponseHeadersFilter implements ContainerResponseFilter {
     private final VerkeersDrukteAppConfig config;
@@ -18,7 +20,7 @@ public class ResponseHeadersFilter implements ContainerResponseFilter {
 
     @Override
     public void filter(ContainerRequestContext request, ContainerResponseContext response) {
-        config.getHeaders().forEach(response.getHeaders()::putSingle);
+        config.headers().forEach(response.getHeaders()::putSingle);
         String path = request.getUriInfo().getPath();
         if (path.contains("/dynamic/") && path.endsWith("/events")) {
             response.getHeaders().putSingle("Cache-Control", "no-cache");
