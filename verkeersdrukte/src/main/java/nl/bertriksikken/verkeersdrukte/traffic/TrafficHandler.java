@@ -3,10 +3,12 @@ package nl.bertriksikken.verkeersdrukte.traffic;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Stopwatch;
 import com.google.common.util.concurrent.Runnables;
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
+import io.quarkus.runtime.Startup;
+import io.quarkus.runtime.StartupEvent;
 import nl.bertriksikken.datex2.MeasuredDataPublication;
 import nl.bertriksikken.datex2.MeasuredValue;
 import nl.bertriksikken.datex2.MeasurementSiteRecord;
@@ -44,6 +46,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.zip.GZIPInputStream;
 
 @ApplicationScoped
+@Startup
 public class TrafficHandler implements ITrafficHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(TrafficHandler.class);
@@ -66,7 +69,10 @@ public class TrafficHandler implements ITrafficHandler {
         shapeFileDownloader = new ShapeFileDownloader(config.traffic().getShapeFileFolder(), ndwDownloader);
     }
 
-    @PostConstruct
+    void onStart(@Observes StartupEvent event) {
+        start();
+    }
+
     public void start() {
         ndwDownloader.start();
 
