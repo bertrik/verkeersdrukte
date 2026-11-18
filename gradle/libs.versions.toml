@@ -1,6 +1,6 @@
 [versions]
 quarkus = "3.40.1.2"
-errorprone = "2.52.0"
+errorprone = "2.53.0"
 jdbf = "2.2.4"
 retrofit = "3.0.0"
 versions_plugin= "0.67.0"
