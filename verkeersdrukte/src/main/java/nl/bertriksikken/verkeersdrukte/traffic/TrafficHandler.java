@@ -46,7 +46,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.zip.GZIPInputStream;
 
 @ApplicationScoped
-@Startup
 public class TrafficHandler implements ITrafficHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(TrafficHandler.class);
@@ -69,6 +68,8 @@ public class TrafficHandler implements ITrafficHandler {
         shapeFileDownloader = new ShapeFileDownloader(config.traffic().getShapeFileFolder(), ndwDownloader);
     }
 
+    // CDI invokes this observer when the application starts.
+    @SuppressWarnings("unused")
     void onStart(@Observes StartupEvent event) {
         start();
     }
@@ -112,14 +113,12 @@ public class TrafficHandler implements ITrafficHandler {
         Instant next = Instant.now().plusSeconds(60);
         try {
             FileResponse response = ndwDownloader.fetchUncached(INdwApi.TRAFFIC_SPEED_XML_GZ);
-            Duration age = Duration.between(response.getLastModified(), Instant.now());
             next = response.getLastModified().plusSeconds(65);
-            LOG.info("Got data, age {}", age);
             try (FileInputStream fis = new FileInputStream(response.getFile())) {
                 decode(fis);
             }
         } catch (IOException e) {
-            LOG.warn("Download failed", e);
+            LOG.warn("Download MDP failed", e);
         }
 
         // schedule next
@@ -127,7 +126,7 @@ public class TrafficHandler implements ITrafficHandler {
         while (interval.isNegative()) {
             interval = interval.plusSeconds(60);
         }
-        LOG.info("Scheduling next download in {}", interval);
+        LOG.info("Scheduling next MDP download in {}", interval);
         schedule(this::downloadTrafficSpeed, interval);
 
         notifyClients();
@@ -138,9 +137,7 @@ public class TrafficHandler implements ITrafficHandler {
         Instant next = Instant.now().plusSeconds(60);
         try {
             FileResponse response = ndwDownloader.fetchUncached(INdwApi.VMS_PAYLOAD);
-            Duration age = Duration.between(response.getLastModified(), Instant.now());
             next = response.getLastModified().plusSeconds(65);
-            LOG.info("Got data, age {}", age);
             try (FileInputStream fis = new FileInputStream(response.getFile())) {
                 vmsPayload = decodeVmsPublication(fis);
             }
