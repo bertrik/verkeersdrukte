@@ -1,0 +1,28 @@
+# Bundled defaults; configuration.yaml overrides properties it defines.
+verkeersdrukte:
+  ndw:
+    host: https://opendata.ndw.nu/
+    timeout: 30
+    cache-location: .cache
+  traffic:
+    time-zone: Europe/Amsterdam
+    base-url: http://localhost:9002
+    expiry-duration-minutes: 60
+    shape-file-folder: .shapefile
+  headers: {}
+quarkus:
+  http:
+    port: 9002
+    host: 0.0.0.0
+    enable-compression: true
+    access-log:
+      enabled: true
+      log-to-file: true
+      base-file-name: requests
+      log-directory: .
+  log:
+    file:
+      enabled: true
+      path: verkeersdrukte.log
+      rotation:
+        max-backup-index: 10

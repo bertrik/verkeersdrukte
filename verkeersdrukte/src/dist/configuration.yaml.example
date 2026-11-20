@@ -1,32 +1,19 @@
 ---
-ndw:
-  host: "https://opendata.ndw.nu/"
-  timeout: 30
-traffic:
-  timeZone: "Europe/Amsterdam"
-  baseUrl: "https://stofradar.nl"
-headers:
-  Access-Control-Allow-Origin: "*"
-  X-Accel-Buffering: "no"
-logging: !<default>
-  level: "INFO"
-  loggers: {}
-  appenders:
-    - type: file
-      logFormat: "%d{yyyy-MM-dd} | %d{HH:mm:ss.SSS} | %-15.15thread | %5p | %-25.25logger{25} | %m%n"
-      currentLogFilename: verkeersdrukte.log
-      archivedLogFilenamePattern: verkeersdrukte.log.%d
-      archivedFileCount: 10
-server: !<default>
-  adminConnectors: []
-  applicationConnectors:
-    - type: http
-      port: 9002
-  gzip:
-    enabled: true
-  requestLog:
-    appenders:
-      - type: file
-        currentLogFilename: requests.log
-        archivedLogFilenamePattern: requests.log.%d
-        archivedFileCount: 10
+verkeersdrukte:
+  ndw:
+    host: https://opendata.ndw.nu/
+    timeout: 30
+    cache-location: .cache
+  traffic:
+    time-zone: Europe/Amsterdam
+    base-url: https://stofradar.nl
+    expiry-duration-minutes: 60
+    shape-file-folder: .shapefile
+  headers:
+    Access-Control-Allow-Origin: "*"
+    X-Accel-Buffering: "no"
+quarkus:
+  http:
+    port: 9002
+    host: 0.0.0.0
+    enable-compression: true

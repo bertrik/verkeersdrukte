@@ -52,3 +52,9 @@ allprojects {
         rejectVersionIf { isNonStable(it.candidate.version) }
     }
 }
+
+subprojects {
+    dependencies {
+        implementation(enforcedPlatform("io.quarkus.platform:quarkus-bom:${libs.versions.quarkus.get()}"))
+    }
+}

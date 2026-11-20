@@ -4,7 +4,6 @@ import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.ResponseBody;
-import org.eclipse.jetty.http.HttpHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import retrofit2.Response;
@@ -43,7 +42,7 @@ public final class NdwClient implements AutoCloseable {
     }
 
     private static okhttp3.Response addUserAgent(Interceptor.Chain chain) throws IOException {
-        Request userAgentRequest = chain.request().newBuilder().header(HttpHeader.USER_AGENT.asString(), USER_AGENT).build();
+        Request userAgentRequest = chain.request().newBuilder().header("User-Agent", USER_AGENT).build();
         return chain.proceed(userAgentRequest);
     }
 

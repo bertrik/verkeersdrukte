@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+
+APP_HOME=$(CDPATH= cd "$(dirname "$0")/.." && pwd)
+cd "$APP_HOME"
+
+exec java ${JAVA_OPTS:-} \
+  "-Dquarkus.config.locations=file:${APP_HOME}/configuration.yaml" \
+  -jar "${APP_HOME}/quarkus-run.jar" "$@"

@@ -3,7 +3,7 @@ package nl.bertriksikken.verkeersdrukte.ndw;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import org.glassfish.jersey.http.HttpHeaders;
+import com.google.common.base.Stopwatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,10 +11,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -47,10 +49,16 @@ public final class NdwDownloader implements AutoCloseable {
     }
 
     public FileResponse fetchUncached(String name) throws IOException {
+        LOG.info("Downloading {}...", name);
+        Stopwatch sw = Stopwatch.createStarted();
         File file = new File(cacheLocation, name);
         Map<String, String> headers = new HashMap<>();
-        headers.put(HttpHeaders.ACCEPT_ENCODING, "gzip");
-        return client.getFile(name, headers, file);
+        headers.put("Accept-Encoding", "gzip");
+        FileResponse response = client.getFile(name, headers, file);
+        long duration = sw.elapsed().toMillis();
+        Duration age = Duration.between(response.getLastModified(), Instant.now()).truncatedTo(ChronoUnit.MILLIS);
+        LOG.info("Downloaded {}, {} bytes in {} ms, age {}", name, response.getFile().length(), duration, age);
+        return response;
     }
 
     /**
@@ -64,8 +72,8 @@ public final class NdwDownloader implements AutoCloseable {
         String etag = file.exists() ? cacheEntry.etag() : "";
 
         Map<String, String> headers = new HashMap<>();
-        headers.put(HttpHeaders.IF_NONE_MATCH, etag);
-        headers.put(HttpHeaders.ACCEPT_ENCODING, "gzip");
+        headers.put("If-None-Match", etag);
+        headers.put("Accept-Encoding", "gzip");
         try {
             FileResponse response = client.getFile(name, headers, file);
             switch (response.getCode()) {
@@ -75,10 +83,9 @@ public final class NdwDownloader implements AutoCloseable {
                     cacheIndex.put(name, cacheEntry);
                     saveCache();
                 }
-                case 304 -> {
+                case 304 ->
                     // we already have the file in our cache, do nothing
                     LOG.info("File '{}' already cached (etag {})", name, etag);
-                }
                 default -> LOG.warn("Failed to download '{}': {}", name, response);
             }
         } catch (IOException e) {

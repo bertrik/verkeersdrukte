@@ -1,9 +1,14 @@
 package nl.bertriksikken.verkeersdrukte.app;
 
-import com.codahale.metrics.health.HealthCheck;
+import jakarta.enterprise.context.ApplicationScoped;
 import nl.bertriksikken.verkeersdrukte.traffic.TrafficHandler;
+import org.eclipse.microprofile.health.HealthCheck;
+import org.eclipse.microprofile.health.HealthCheckResponse;
+import org.eclipse.microprofile.health.Readiness;
 
-public final class VerkeersDrukteHealthCheck extends HealthCheck {
+@Readiness
+@ApplicationScoped
+public class VerkeersDrukteHealthCheck implements HealthCheck {
     private final TrafficHandler handler;
 
     public VerkeersDrukteHealthCheck(TrafficHandler handler) {
@@ -11,7 +16,7 @@ public final class VerkeersDrukteHealthCheck extends HealthCheck {
     }
 
     @Override
-    protected Result check() throws Exception {
-        return handler.isHealthy() ? Result.healthy() : Result.unhealthy("not feeling well");
+    public HealthCheckResponse call() {
+        return HealthCheckResponse.named("application-data").status(handler.isReady()).build();
     }
 }

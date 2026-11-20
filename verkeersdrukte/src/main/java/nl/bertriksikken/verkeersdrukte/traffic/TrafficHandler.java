@@ -3,7 +3,11 @@ package nl.bertriksikken.verkeersdrukte.traffic;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Stopwatch;
 import com.google.common.util.concurrent.Runnables;
-import io.dropwizard.lifecycle.Managed;
+import io.quarkus.runtime.StartupEvent;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
 import nl.bertriksikken.datex2.MeasuredDataPublication;
 import nl.bertriksikken.datex2.MeasuredValue;
 import nl.bertriksikken.datex2.MeasurementSiteRecord;
@@ -40,7 +44,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.zip.GZIPInputStream;
 
-public final class TrafficHandler implements ITrafficHandler, Managed {
+@ApplicationScoped
+public class TrafficHandler implements ITrafficHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(TrafficHandler.class);
 
@@ -54,14 +59,23 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
 
     private FeatureCollection shapeFile = new FeatureCollection();
     private VmsPayload vmsPayload;
+    private volatile boolean initialStaticDataLoaded;
+    private volatile boolean initialTrafficDataLoaded;
+    private volatile boolean initialVmsDataLoaded;
 
+    @Inject
     public TrafficHandler(VerkeersDrukteAppConfig config) {
-        measurementCache = new MeasurementCache(config.getTrafficConfig().getExpiryDuration());
-        ndwDownloader = new NdwDownloader(config.getNdwConfig());
-        shapeFileDownloader = new ShapeFileDownloader(config.getTrafficConfig().getShapeFileFolder(), ndwDownloader);
+        measurementCache = new MeasurementCache(config.traffic().getExpiryDuration());
+        ndwDownloader = new NdwDownloader(config.ndw());
+        shapeFileDownloader = new ShapeFileDownloader(config.traffic().getShapeFileFolder(), ndwDownloader);
     }
 
-    @Override
+    // CDI invokes this observer when the application starts.
+    @SuppressWarnings("unused")
+    void onStart(@Observes StartupEvent event) {
+        start();
+    }
+
     public void start() {
         ndwDownloader.start();
 
@@ -90,7 +104,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         executor.schedule(runnable, delay.toMillis(), TimeUnit.MILLISECONDS);
     }
 
-    @Override
+    @PreDestroy
     public void stop() {
         ndwDownloader.close();
         executor.shutdownNow();
@@ -101,14 +115,14 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         Instant next = Instant.now().plusSeconds(60);
         try {
             FileResponse response = ndwDownloader.fetchUncached(INdwApi.TRAFFIC_SPEED_XML_GZ);
-            Duration age = Duration.between(response.getLastModified(), Instant.now());
+            requireSuccessfulResponse(response);
             next = response.getLastModified().plusSeconds(65);
-            LOG.info("Got data, age {}", age);
             try (FileInputStream fis = new FileInputStream(response.getFile())) {
                 decode(fis);
+                initialTrafficDataLoaded = true;
             }
         } catch (IOException e) {
-            LOG.warn("Download failed", e);
+            LOG.warn("Download MDP failed", e);
         }
 
         // schedule next
@@ -116,7 +130,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         while (interval.isNegative()) {
             interval = interval.plusSeconds(60);
         }
-        LOG.info("Scheduling next download in {}", interval);
+        LOG.info("Scheduling next MDP download in {}", interval);
         schedule(this::downloadTrafficSpeed, interval);
 
         notifyClients();
@@ -127,11 +141,11 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
         Instant next = Instant.now().plusSeconds(60);
         try {
             FileResponse response = ndwDownloader.fetchUncached(INdwApi.VMS_PAYLOAD);
-            Duration age = Duration.between(response.getLastModified(), Instant.now());
+            requireSuccessfulResponse(response);
             next = response.getLastModified().plusSeconds(65);
-            LOG.info("Got data, age {}", age);
             try (FileInputStream fis = new FileInputStream(response.getFile())) {
                 vmsPayload = decodeVmsPublication(fis);
+                initialVmsDataLoaded = true;
             }
         } catch (IOException e) {
             LOG.warn("Download VMS failed", e);
@@ -149,12 +163,16 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     }
 
     private void downloadShapeFileMst() {
+        boolean shapeFileLoaded = false;
+        boolean mstLoaded = false;
+
         // get shape file
         LOG.info("Fetching shapefile...");
         try {
             Stopwatch sw = Stopwatch.createStarted();
             if (shapeFileDownloader.download()) {
                 shapeFile = shapeFileDownloader.getGeoJson();
+                shapeFileLoaded = true;
                 LOG.info("Parsed shapefile, {} features, took {}", shapeFile.getFeatures().size(), sw.elapsed());
             }
         } catch (IOException e) {
@@ -172,6 +190,7 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
                     Stopwatch sw = Stopwatch.createStarted();
                     mst = new MeasurementSiteTable();
                     mst.parse(gzis, shapeFileDownloader.getSiteIds());
+                    mstLoaded = true;
                     LOG.info("Parsed MST, {} entries, took {}", mst.getMeasurementSiteIds().size(), sw.elapsed());
                 }
             } else {
@@ -181,8 +200,19 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
             LOG.warn("MST download failed: {}", e.getMessage());
         }
 
+        if (shapeFileLoaded && mstLoaded) {
+            initialStaticDataLoaded = true;
+        }
+
         // reschedule
-        schedule(this::downloadShapeFileMst, Duration.ofDays(1));
+        Duration nextDownload = initialStaticDataLoaded ? Duration.ofDays(1) : Duration.ofMinutes(1);
+        schedule(this::downloadShapeFileMst, nextDownload);
+    }
+
+    private void requireSuccessfulResponse(FileResponse response) throws IOException {
+        if (response.getCode() < 200 || response.getCode() >= 300) {
+            throw new IOException("NDW request failed with HTTP status " + response.getCode());
+        }
     }
 
     private void decode(InputStream inputStream) throws IOException {
@@ -302,7 +332,11 @@ public final class TrafficHandler implements ITrafficHandler, Managed {
     }
 
     @Override
-    public boolean isHealthy() {
+    public boolean isReady() {
+        if (!initialStaticDataLoaded || !initialTrafficDataLoaded || !initialVmsDataLoaded) {
+            return false;
+        }
+
         // try to submit something to the executor, and see if it responds
         try {
             executor.submit(Runnables::doNothing).get(3, TimeUnit.SECONDS);
