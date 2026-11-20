@@ -5,7 +5,7 @@ import nl.bertriksikken.geojson.FeatureCollection;
 
 public interface ITrafficHandler {
 
-    boolean isHealthy();
+    boolean isReady();
 
     SiteMeasurement getDynamicData(String location);
 

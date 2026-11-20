@@ -17,6 +17,6 @@ public class VerkeersDrukteHealthCheck implements HealthCheck {
 
     @Override
     public HealthCheckResponse call() {
-        return HealthCheckResponse.named("ndw").status(handler.isHealthy()).build();
+        return HealthCheckResponse.named("application-data").status(handler.isReady()).build();
     }
 }
